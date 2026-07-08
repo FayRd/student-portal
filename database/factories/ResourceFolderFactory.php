@@ -20,7 +20,7 @@ class ResourceFolderFactory extends Factory
         return [
             'module_id' => null,
             'parent_id' => null,
-            'name'      => 'Week ' . fake()->unique()->numberBetween(1, 14) . ' — ' . fake()->catchPhrase(),
+            'name'      => 'Week ' . fake()->numberBetween(1, 14) . ' — ' . fake()->catchPhrase(),
             'order'     => 0,
         ];
     }
