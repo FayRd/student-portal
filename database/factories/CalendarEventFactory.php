@@ -17,8 +17,16 @@ class CalendarEventFactory extends Factory
      */
     public function definition(): array
     {
+        $starts = fake()->dateTimeBetween('-1 month', '+3 months');
+        $ends   = (clone $starts)->modify('+' . fake()->numberBetween(1, 14) . ' days');
+
         return [
-            //
+            'title'       => fake()->sentence(4),
+            'description' => fake()->paragraph(),
+            'type'        => fake()->randomElement(['HOLIDAY', 'EXAM_PERIOD', 'SEMESTER_START', 'SEMESTER_END', 'OTHER']),
+            'starts_at'   => $starts,
+            'ends_at'     => $ends,
+            'created_by'  => null,
         ];
     }
 }

@@ -18,7 +18,10 @@ class ResourceFolderFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'module_id' => null,
+            'parent_id' => null,
+            'name'      => 'Week ' . fake()->unique()->numberBetween(1, 14) . ' — ' . fake()->catchPhrase(),
+            'order'     => 0,
         ];
     }
 }

@@ -17,8 +17,27 @@ class AttendanceFactory extends Factory
      */
     public function definition(): array
     {
+        // Triple 'PRESENT' because increase chance
         return [
-            //
+            'class_id'  => null,
+            'user_id'   => null,
+            'status'    => fake()->randomElement(['PRESENT', 'PRESENT', 'PRESENT', 'ABSENT', 'LATE', 'EXCUSED']),
+            'marked_by' => null,
+            'marked_at' => fake()->dateTimeBetween('-2 months', 'now'),
+            'note'      => null,
         ];
+    }
+
+    public function present(): static
+    {
+        return $this->state(fn () => ['status' => 'PRESENT', 'note' => null]);
+    }
+
+    public function absent(): static
+    {
+        return $this->state(fn () => [
+            'status' => 'ABSENT',
+            'note'   => fake()->sentence(),
+        ]);
     }
 }

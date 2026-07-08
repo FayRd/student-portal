@@ -18,7 +18,20 @@ class EnrollmentFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'user_id'     => null,
+            'module_id'   => null,
+            'status'      => 'ACTIVE',
+            'enrolled_at' => fake()->dateTimeBetween('-3 months', '-1 month'),
         ];
+    }
+
+    public function completed(): static
+    {
+        return $this->state(fn () => ['status' => 'COMPLETED']);
+    }
+
+    public function dropped(): static
+    {
+        return $this->state(fn () => ['status' => 'DROPPED']);
     }
 }
