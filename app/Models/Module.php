@@ -39,7 +39,7 @@ class Module extends Model
     public function editors(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'module_user')
-            ->withPivot('role')
+            ->withPivot('role', 'created_at')
             ->wherePivot('role', 'editor');
     }
 

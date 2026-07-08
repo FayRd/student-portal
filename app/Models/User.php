@@ -107,7 +107,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(ModuleResource::class, 'uploaded_by');
     }
-
+    
+    public function lastModifiedResources(): HasMany
+    {
+        return $this->hasMany(ModuleResource::class, 'last_modified_by');
+    }
     /**
      * Get the user's initials
      */
