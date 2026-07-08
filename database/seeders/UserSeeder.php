@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,6 +13,17 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        // Admin
+        User::factory()->staff()->create([
+            'name'             => 'Admin User',
+            'email'            => 'admin@portal.test',
+            'institutional_id' => '10000001',
+        ]);
+
+        // Lecturers
+        User::factory()->staff()->count(5)->create();
+
+        // Students
+        User::factory()->student()->count(30)->create();
     }
 }
