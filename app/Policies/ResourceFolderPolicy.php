@@ -25,28 +25,21 @@ class ResourceFolderPolicy
             || $user->isEditorOf($resourceFolder->module)
             || $user->isEnrolledIn($resourceFolder->module);    }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isLecturer();
+        return $user->can('create resource folders');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, ResourceFolder $resourceFolder): bool
     {
-        return $user->isAdmin() || $user->isEditorOf($resourceFolder->module);
+        return $user->can('update resource folders')
+            && ($user->isAdmin() || $user->isEditorOf($resourceFolder->module));
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, ResourceFolder $resourceFolder): bool
     {
-        return $user->isAdmin() || $user->isEditorOf($resourceFolder->module);
+        return $user->can('delete resource folders')
+            && ($user->isAdmin() || $user->isEditorOf($resourceFolder->module));
     }
 
     /**

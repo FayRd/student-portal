@@ -25,12 +25,9 @@ class SubmissionPolicy
             || $user->isEditorOf($submission->assignment->module)
             || $user->id === $submission->user_id;    }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isStudent();
+        return $user->can('submit assignments');
     }
 
     /**
@@ -41,12 +38,9 @@ class SubmissionPolicy
         return false;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Submission $submission): bool
     {
-        return $user->isAdmin();
+        return $user->can('delete submissions');
     }
 
     /**

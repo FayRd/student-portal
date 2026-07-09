@@ -25,29 +25,20 @@ class GradePolicy
             || $user->isEditorOf($grade->submission->assignment->module)
             || $user->id === $grade->submission->user_id;    }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isLecturer();
+        return $user->can('grade submissions');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Grade $grade): bool
     {
-        return $user->isAdmin()
-            || $user->isEditorOf($grade->submission->assignment->module);
+        return $user->can('update grades')
+            && ($user->isAdmin() || $user->isEditorOf($grade->submission->assignment->module));
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Grade $grade): bool
     {
-        return $user->isAdmin();
+        return $user->can('delete grades');
     }
 
     /**

@@ -25,28 +25,21 @@ class ModuleResourcePolicy
             || $user->isEditorOf($moduleResource->module)
             || $user->isEnrolledIn($moduleResource->module);    }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isLecturer();
+        return $user->can('create module resources');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, ModuleResource $moduleResource): bool
     {
-        return $user->isAdmin() || $user->isEditorOf($moduleResource->module);
+        return $user->can('update module resources')
+            && ($user->isAdmin() || $user->isEditorOf($moduleResource->module));
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, ModuleResource $moduleResource): bool
     {
-        return $user->isAdmin() || $user->isEditorOf($moduleResource->module);
+        return $user->can('delete module resources')
+            && ($user->isAdmin() || $user->isEditorOf($moduleResource->module));
     }
 
     /**

@@ -8,12 +8,9 @@ use Illuminate\Auth\Access\Response;
 
 class EnrollmentPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->can('manage users');
     }
 
     /**
@@ -24,12 +21,9 @@ class EnrollmentPolicy
         return $user->isAdmin() || $user->id === $enrollment->user_id;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isStudent();
+        return $user->can('submit assignments') || $user->can('manage users');
     }
 
     /**
@@ -40,12 +34,9 @@ class EnrollmentPolicy
         return false;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Enrollment $enrollment): bool
     {
-        return $user->isAdmin() || $user->id === $enrollment->user_id;
+        return $user->can('manage users') || $user->id === $enrollment->user_id;
     }
 
     /**

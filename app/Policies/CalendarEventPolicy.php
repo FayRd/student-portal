@@ -24,28 +24,19 @@ class CalendarEventPolicy
         return true;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->can('create calendar events');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, CalendarEvent $calendarEvent): bool
     {
-        return $user->isAdmin();
+        return $user->can('update calendar events');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, CalendarEvent $calendarEvent): bool
     {
-        return $user->isAdmin();
+        return $user->can('delete calendar events');
     }
 
     /**

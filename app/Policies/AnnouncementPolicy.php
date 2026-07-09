@@ -29,28 +29,21 @@ class AnnouncementPolicy
             || $user->isEditorOf($announcement->module)
             || $user->isEnrolledIn($announcement->module);    }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isLecturer();
+        return $user->can('create announcements');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Announcement $announcement): bool
     {
-        return $user->isAdmin() || $user->id === $announcement->created_by;
+        return $user->can('update announcements')
+            && ($user->isAdmin() || $user->id === $announcement->created_by);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Announcement $announcement): bool
     {
-        return $user->isAdmin() || $user->id === $announcement->created_by;
+        return $user->can('delete announcements')
+            && ($user->isAdmin() || $user->id === $announcement->created_by);
     }
 
     /**

@@ -25,28 +25,21 @@ class AssignmentPolicy
             || $user->isEditorOf($assignment->module)
             || $user->isEnrolledIn($assignment->module);    }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isLecturer();
+        return $user->can('create assignments');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Assignment $assignment): bool
     {
-        return $user->isAdmin() || $user->isEditorOf($assignment->module);
+        return $user->can('update assignments')
+            && ($user->isAdmin() || $user->isEditorOf($assignment->module));
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Assignment $assignment): bool
     {
-        return $user->isAdmin() || $user->isEditorOf($assignment->module);
+        return $user->can('delete assignments')
+            && ($user->isAdmin() || $user->isEditorOf($assignment->module));
     }
 
     /**

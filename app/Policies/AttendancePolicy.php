@@ -25,28 +25,20 @@ class AttendancePolicy
             || $user->isEditorOf($attendance->classSession->module)
             || $user->id === $attendance->user_id;    }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isLecturer();
+        return $user->can('mark attendance');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Attendance $attendance): bool
     {
-        return $user->isAdmin()
-            || $user->isEditorOf($attendance->classSession->module);    }
+        return $user->can('update attendance')
+            && ($user->isAdmin() || $user->isEditorOf($attendance->classSession->module));
+    }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Attendance $attendance): bool
     {
-        return $user->isAdmin();
+        return $user->can('delete attendance');
     }
 
     /**

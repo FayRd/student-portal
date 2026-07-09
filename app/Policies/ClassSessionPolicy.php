@@ -26,28 +26,21 @@ class ClassSessionPolicy
             || $user->isEnrolledIn($classSession->module);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin() || $user->isLecturer();
+        return $user->can('create classes');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, ClassSession $classSession): bool
     {
-        return $user->isAdmin() || $user->isEditorOf($classSession->module);
+        return $user->can('update classes')
+            && ($user->isAdmin() || $user->isEditorOf($classSession->module));
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, ClassSession $classSession): bool
     {
-        return $user->isAdmin() || $user->isEditorOf($classSession->module);
+        return $user->can('delete classes')
+            && ($user->isAdmin() || $user->isEditorOf($classSession->module));
     }
 
     /**

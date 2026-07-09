@@ -26,28 +26,20 @@ class ModulePolicy
             || $user->isEnrolledIn($module);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->can('create modules');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Module $module): bool
     {
-        return $user->isAdmin() || $user->isEditorOf($module);
+        return $user->can('update modules')
+            && ($user->isAdmin() || $user->isEditorOf($module));
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Module $module): bool
     {
-        return $user->isAdmin();
+        return $user->can('delete modules');
     }
 
     /**
