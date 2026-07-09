@@ -19,11 +19,14 @@ class UserSeeder extends Seeder
             'email'            => 'admin@portal.test',
             'institutional_id' => '10000001',
         ]);
+        $admin->assignRole('admin');
 
         // Lecturers
-        User::factory()->staff()->count(5)->create();
+        User::factory()->staff()->count(5)->create()
+            ->each(fn ($user) => $user->assignRole('lecturer'));
 
         // Students
-        User::factory()->student()->count(30)->create();
+        User::factory()->student()->count(30)->create()
+            ->each(fn ($user) => $user->assignRole('student'));
     }
 }
