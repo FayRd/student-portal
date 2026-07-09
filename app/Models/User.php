@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -34,7 +35,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes, HasRoles;
 
     /**
      * Get the attributes that should be cast.
@@ -107,11 +108,43 @@ class User extends Authenticatable
     {
         return $this->hasMany(ModuleResource::class, 'uploaded_by');
     }
-    
+
     public function lastModifiedResources(): HasMany
     {
         return $this->hasMany(ModuleResource::class, 'last_modified_by');
     }
+
+    // Roles Helper Methods
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
+    public function isLecturer(): bool
+    {
+        return $this->hasRole('lecturer');
+    }
+
+    public function isStudent(): bool
+    {
+        return $this->hasRole('student');
+    }
+
+    public function isEditorOf(Module $module): bool
+    {
+        return $this->moduleAssignments()
+            ->where('module_id', $module->id)
+            ->exists();
+    }
+
+    public function isEnrolledIn(Module $module): bool
+    {
+        return $this->enrollments()
+            ->where('module_id', $module->id)
+            ->where('status', 'ACTIVE')
+            ->exists();
+    }
+    
     /**
      * Get the user's initials
      */
