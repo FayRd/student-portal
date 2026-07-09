@@ -45,7 +45,7 @@ return [
     |
     */
 
-    'username' => 'email',
+    'username' => 'institutional_id',
 
     'email' => 'email',
 
@@ -144,8 +144,9 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Features::registration(),
         Features::resetPasswords(),
+        Features::updatePasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([
             'confirm' => true,
