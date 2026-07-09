@@ -13,7 +13,7 @@ class ModulePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +21,9 @@ class ModulePolicy
      */
     public function view(User $user, Module $module): bool
     {
-        return false;
+        return $user->isAdmin()
+            || $user->isEditorOf($module)
+            || $user->isEnrolledIn($module);
     }
 
     /**
@@ -29,7 +31,7 @@ class ModulePolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -37,7 +39,7 @@ class ModulePolicy
      */
     public function update(User $user, Module $module): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isEditorOf($module);
     }
 
     /**
@@ -45,7 +47,7 @@ class ModulePolicy
      */
     public function delete(User $user, Module $module): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**

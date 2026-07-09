@@ -13,7 +13,7 @@ class EnrollmentPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -21,7 +21,7 @@ class EnrollmentPolicy
      */
     public function view(User $user, Enrollment $enrollment): bool
     {
-        return false;
+        return $user->isAdmin() || $user->id === $enrollment->user_id;
     }
 
     /**
@@ -29,7 +29,7 @@ class EnrollmentPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isStudent();
     }
 
     /**
@@ -45,7 +45,7 @@ class EnrollmentPolicy
      */
     public function delete(User $user, Enrollment $enrollment): bool
     {
-        return false;
+        return $user->isAdmin() || $user->id === $enrollment->user_id;
     }
 
     /**

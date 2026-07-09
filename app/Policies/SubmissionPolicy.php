@@ -13,7 +13,7 @@ class SubmissionPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,15 +21,16 @@ class SubmissionPolicy
      */
     public function view(User $user, Submission $submission): bool
     {
-        return false;
-    }
+        return $user->isAdmin()
+            || $user->isEditorOf($submission->assignment->module)
+            || $user->id === $submission->user_id;    }
 
     /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isStudent();
     }
 
     /**
@@ -45,7 +46,7 @@ class SubmissionPolicy
      */
     public function delete(User $user, Submission $submission): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**

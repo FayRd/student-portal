@@ -13,7 +13,7 @@ class AttendancePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,15 +21,16 @@ class AttendancePolicy
      */
     public function view(User $user, Attendance $attendance): bool
     {
-        return false;
-    }
+        return $user->isAdmin()
+            || $user->isEditorOf($attendance->classSession->module)
+            || $user->id === $attendance->user_id;    }
 
     /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isLecturer();
     }
 
     /**
@@ -37,15 +38,15 @@ class AttendancePolicy
      */
     public function update(User $user, Attendance $attendance): bool
     {
-        return false;
-    }
+        return $user->isAdmin()
+            || $user->isEditorOf($attendance->classSession->module);    }
 
     /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Attendance $attendance): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**

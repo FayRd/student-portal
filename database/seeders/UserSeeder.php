@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Admin
-        User::factory()->staff()->create([
+        $admin = User::factory()->staff()->create([
             'name'             => 'Admin User',
             'email'            => 'admin@portal.test',
             'institutional_id' => '10000001',

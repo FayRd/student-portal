@@ -13,7 +13,7 @@ class ModuleResourcePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,15 +21,16 @@ class ModuleResourcePolicy
      */
     public function view(User $user, ModuleResource $moduleResource): bool
     {
-        return false;
-    }
+        return $user->isAdmin()
+            || $user->isEditorOf($moduleResource->module)
+            || $user->isEnrolledIn($moduleResource->module);    }
 
     /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isLecturer();
     }
 
     /**
@@ -37,7 +38,7 @@ class ModuleResourcePolicy
      */
     public function update(User $user, ModuleResource $moduleResource): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isEditorOf($moduleResource->module);
     }
 
     /**
@@ -45,7 +46,7 @@ class ModuleResourcePolicy
      */
     public function delete(User $user, ModuleResource $moduleResource): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isEditorOf($moduleResource->module);
     }
 
     /**

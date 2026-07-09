@@ -13,7 +13,7 @@ class CalendarEventPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +21,7 @@ class CalendarEventPolicy
      */
     public function view(User $user, CalendarEvent $calendarEvent): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,7 +29,7 @@ class CalendarEventPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -37,7 +37,7 @@ class CalendarEventPolicy
      */
     public function update(User $user, CalendarEvent $calendarEvent): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -45,7 +45,7 @@ class CalendarEventPolicy
      */
     public function delete(User $user, CalendarEvent $calendarEvent): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**

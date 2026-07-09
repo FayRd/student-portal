@@ -13,7 +13,7 @@ class AnnouncementPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,15 +21,20 @@ class AnnouncementPolicy
      */
     public function view(User $user, Announcement $announcement): bool
     {
-        return false;
-    }
+        if ($announcement->isGlobal()) {
+            return true;
+        }
+
+        return $user->isAdmin()
+            || $user->isEditorOf($announcement->module)
+            || $user->isEnrolledIn($announcement->module);    }
 
     /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isLecturer();
     }
 
     /**
@@ -37,7 +42,7 @@ class AnnouncementPolicy
      */
     public function update(User $user, Announcement $announcement): bool
     {
-        return false;
+        return $user->isAdmin() || $user->id === $announcement->created_by;
     }
 
     /**
@@ -45,7 +50,7 @@ class AnnouncementPolicy
      */
     public function delete(User $user, Announcement $announcement): bool
     {
-        return false;
+        return $user->isAdmin() || $user->id === $announcement->created_by;
     }
 
     /**

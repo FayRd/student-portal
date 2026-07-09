@@ -13,7 +13,7 @@ class ClassSessionPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +21,9 @@ class ClassSessionPolicy
      */
     public function view(User $user, ClassSession $classSession): bool
     {
-        return false;
+        return $user->isAdmin()
+            || $user->isEditorOf($classSession->module)
+            || $user->isEnrolledIn($classSession->module);
     }
 
     /**
@@ -29,7 +31,7 @@ class ClassSessionPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isLecturer();
     }
 
     /**
@@ -37,7 +39,7 @@ class ClassSessionPolicy
      */
     public function update(User $user, ClassSession $classSession): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isEditorOf($classSession->module);
     }
 
     /**
@@ -45,7 +47,7 @@ class ClassSessionPolicy
      */
     public function delete(User $user, ClassSession $classSession): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isEditorOf($classSession->module);
     }
 
     /**

@@ -13,7 +13,7 @@ class GradePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,15 +21,16 @@ class GradePolicy
      */
     public function view(User $user, Grade $grade): bool
     {
-        return false;
-    }
+        return $user->isAdmin()
+            || $user->isEditorOf($grade->submission->assignment->module)
+            || $user->id === $grade->submission->user_id;    }
 
     /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isLecturer();
     }
 
     /**
@@ -37,7 +38,8 @@ class GradePolicy
      */
     public function update(User $user, Grade $grade): bool
     {
-        return false;
+        return $user->isAdmin()
+            || $user->isEditorOf($grade->submission->assignment->module);
     }
 
     /**
@@ -45,7 +47,7 @@ class GradePolicy
      */
     public function delete(User $user, Grade $grade): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**

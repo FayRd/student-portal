@@ -13,7 +13,7 @@ class ResourceFolderPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,15 +21,16 @@ class ResourceFolderPolicy
      */
     public function view(User $user, ResourceFolder $resourceFolder): bool
     {
-        return false;
-    }
+        return $user->isAdmin()
+            || $user->isEditorOf($resourceFolder->module)
+            || $user->isEnrolledIn($resourceFolder->module);    }
 
     /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isLecturer();
     }
 
     /**
@@ -37,7 +38,7 @@ class ResourceFolderPolicy
      */
     public function update(User $user, ResourceFolder $resourceFolder): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isEditorOf($resourceFolder->module);
     }
 
     /**
@@ -45,7 +46,7 @@ class ResourceFolderPolicy
      */
     public function delete(User $user, ResourceFolder $resourceFolder): bool
     {
-        return false;
+        return $user->isAdmin() || $user->isEditorOf($resourceFolder->module);
     }
 
     /**
