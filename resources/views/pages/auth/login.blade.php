@@ -9,16 +9,14 @@
         <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
             @csrf
             <x-honeypot />
-            <!-- Email Address -->
+            <!-- ID -->
             <flux:input
-                name="email"
-                :label="__('Email address')"
-                :value="old('email')"
-                type="email"
+                name="institutional_id"
+                :label="__('Student / Staff ID')"
+                :value="old('institutional_id')"
                 required
                 autofocus
-                autocomplete="email"
-                placeholder="email@example.com"
+                placeholder="12345678"
             />
 
             <!-- Password -->

@@ -16,6 +16,25 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+                @role('admin')
+                    <flux:sidebar.group :heading="__('Admin Panel')" class="grid">
+                        <flux:sidebar.item icon="user-group" :href="route('admin.users')" :current="request()->routeIs('dashboard')" wire:navigate>
+                            {{ __('Users') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="book-open" :href="route('admin.users')" :current="request()->routeIs('dashboard')" wire:navigate>
+                            {{ __('Modules') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="document-check" :href="route('admin.users')" :current="request()->routeIs('dashboard')" wire:navigate>
+                            {{ __('Enrollments') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="megaphone" :href="route('admin.users')" :current="request()->routeIs('dashboard')" wire:navigate>
+                            {{ __('Announcements') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="calendar-days" :href="route('admin.users')" :current="request()->routeIs('dashboard')" wire:navigate>
+                            {{ __('Calender') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endrole
             </flux:sidebar.nav>
 
             <flux:spacer />
