@@ -18,7 +18,8 @@ class EnsurePasswordIsChanged
         if (
             $request->user() &&
             $request->user()->must_change_password &&
-            ! $request->routeIs('password.change', 'password.change.update', 'logout')
+            ! $request->routeIs('password.change', 'password.change.update', 'logout') &&
+            ! $request->hasHeader('X-Livewire')
         ) {
             return redirect()->route('password.change');
         }

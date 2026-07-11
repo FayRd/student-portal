@@ -89,13 +89,13 @@
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-700 text-xs text-gray-500 dark:text-gray-400 font-medium">
                     <tr>
-                        <th wire:click="sortColumn('institutional_id')" class="text-left px-4 py-3 cursor-pointer select-none hover:text-gray-700">
+                        <th wire:click="sortColumn('institutional_id')" class="text-left px-4 py-3 cursor-pointer select-none hover:text-white">
                             Institutional ID
                             @if ($sortBy === 'institutional_id')
                                 <span>{{ $sortDir === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </th>
-                        <th wire:click="sortColumn('name')" class="text-left px-4 py-3 cursor-pointer select-none hover:text-gray-700">
+                        <th wire:click="sortColumn('name')" class="text-left px-4 py-3 cursor-pointer select-none hover:text-white">
                             Name
                             @if ($sortBy === 'name')
                                 <span>{{ $sortDir === 'asc' ? '↑' : '↓' }}</span>
@@ -104,7 +104,7 @@
                         <th class="text-left px-4 py-3">Email</th>
                         <th class="text-left px-4 py-3">Role</th>
                         <th class="text-left px-4 py-3">Verified</th>
-                        <th wire:click="sortColumn('created_at')" class="text-left px-4 py-3 cursor-pointer select-none hover:text-gray-700">
+                        <th wire:click="sortColumn('created_at')" class="text-left px-4 py-3 cursor-pointer select-none hover:text-white">
                             Created
                             @if ($sortBy === 'created_at')
                                 <span>{{ $sortDir === 'asc' ? '↑' : '↓' }}</span>

@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
+use Livewire\Attributes\Layout;
 
+#[Layout('layouts.auth', ['title' => 'Set your password'])]
 class ForcePasswordChange extends Component
 {
     public string $password              = '';
@@ -15,20 +17,19 @@ class ForcePasswordChange extends Component
     public function changePassword(): void
     {
         $this->validate([
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'password' => ['required', 'confirmed', Password::default()],
         ]);
 
         $user = Auth::user();
-        $user->forceFill([
+        $user->fill([
             'password'             => Hash::make($this->password),
             'must_change_password' => false,
         ])->save();
 
-        // Redirect to email verification if not verified, otherwise dashboard
         if (! $user->hasVerifiedEmail()) {
-            redirect()->route('verification.notice');
+            $this->redirectRoute('verification.notice', navigate: true);
         } else {
-            redirect()->intended(route('dashboard'));
+            $this->redirectIntended(default: route('dashboard'), navigate: true);
         }
     }
 

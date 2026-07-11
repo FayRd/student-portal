@@ -16,6 +16,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 /**
  * @property int $id
@@ -30,9 +31,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password', 'institutional_id', 'avatar_path'])]
+#[Fillable(['name', 'email', 'password', 'institutional_id', 'avatar_path', 'must_change_password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes, HasRoles;
@@ -49,6 +50,7 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
             'deleted_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
         ];
     }
 
@@ -144,7 +146,7 @@ class User extends Authenticatable
             ->where('status', 'ACTIVE')
             ->exists();
     }
-    
+
     /**
      * Get the user's initials
      */

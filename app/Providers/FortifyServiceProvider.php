@@ -28,6 +28,9 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureActions();
+        $this->configureViews();
+        $this->configureRateLimiting();
         Fortify::authenticateUsing(function (Request $request) {
             $user = User::where('institutional_id', $request->institutional_id)->first();
 
@@ -35,9 +38,6 @@ class FortifyServiceProvider extends ServiceProvider
                 return $user;
             }
         });
-        $this->configureActions();
-        $this->configureViews();
-        $this->configureRateLimiting();
     }
 
     /**
@@ -58,7 +58,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::verifyEmailView(fn () => view('pages::auth.verify-email'));
         Fortify::twoFactorChallengeView(fn () => view('pages::auth.two-factor-challenge'));
         Fortify::confirmPasswordView(fn () => view('pages::auth.confirm-password'));
-        Fortify::registerView(fn () => view('pages::auth.register'));
+        // Fortify::registerView(fn () => view('pages::auth.register'));
         Fortify::resetPasswordView(fn () => view('pages::auth.reset-password'));
         Fortify::requestPasswordResetLinkView(fn () => view('pages::auth.forgot-password'));
     }
