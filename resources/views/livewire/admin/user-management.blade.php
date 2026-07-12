@@ -7,18 +7,6 @@
         </div>
     @endif
 
-    {{-- Temp password banner --}}
-    @if ($tempPassword)
-        <div class="bg-yellow-50 border-b border-yellow-200 px-4 py-3 flex items-center justify-between">
-            <div class="text-sm text-yellow-800">
-                <span class="font-medium">Temporary password:</span>
-                <code class="ml-2 bg-yellow-100 px-2 py-0.5 rounded font-mono">{{ $tempPassword }}</code>
-                <span class="ml-2 text-yellow-600">— copy this now, it won't be shown again.</span>
-            </div>
-            <button wire:click="$set('tempPassword', '')" class="text-yellow-600 hover:text-yellow-800 text-xs">Dismiss</button>
-        </div>
-    @endif
-
     {{-- ── SECTION 1: Stats strip ── --}}
     <div class="grid grid-cols-7 gap-3 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         @foreach ([
@@ -344,6 +332,18 @@
                         @endif
                     </div>
                 </div>
+            </div>
+        @endif
+
+        {{-- Temp password banner --}}
+        @if ($tempPassword)
+            <div class="bg-yellow-50 border-b border-yellow-200 px-4 py-3 my-3 flex items-center justify-between">
+                <div class="text-sm text-yellow-800">
+                    <span class="font-medium">Temporary password:</span>
+                    <code class="ml-2 bg-yellow-100 px-2 py-0.5 rounded font-mono">{{ $tempPassword }}</code>
+                    <span class="ml-2 text-yellow-600">— copy this now, it won't be shown again.</span>
+                </div>
+                <button wire:click="$set('tempPassword', '')" class="text-yellow-600 hover:text-yellow-800 text-xs">Dismiss</button>
             </div>
         @endif
     </div>
