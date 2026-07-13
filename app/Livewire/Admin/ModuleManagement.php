@@ -88,13 +88,14 @@ class ModuleManagement extends Component
 
     public function sortColumn(string $column): void
     {
-        $this->sortBy  = $this->sortBy === $column && $this->sortDir === 'asc'
-            ? $this->sortBy
-            : $column;
-        $this->sortDir = $this->sortBy === $column && $this->sortDir === 'asc'
-            ? 'desc'
-            : 'asc';
-        $this->sortBy  = $column;
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy  = $column;
+            $this->sortDir = 'asc';
+        }
+
+        unset($this->modules);
     }
 
     public function selectModule(int $id): void

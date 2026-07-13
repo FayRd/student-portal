@@ -152,11 +152,11 @@
     </div>
 
     {{-- ── SECTION 3: Detail panel ── --}}
-    <div class="bg-white dark:bg-gray-800 min-h-48 p-4">
+    <div class="bg-white dark:bg-gray-800 p-4">
 
         {{-- Empty state --}}
         @if (! $this->selectedUser && $mode === 'view')
-            <div class="flex flex-col items-center justify-center h-40 text-gray-400 dark:text-gray-500 text-sm gap-2">
+            <div class="flex flex-col items-center justify-center h-40 text-gray-400 dark:text-gray-500 text-sm gap-2 min-h-75">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 Select a user from the table to view details
             </div>
