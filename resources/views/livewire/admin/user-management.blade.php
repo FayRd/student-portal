@@ -119,7 +119,7 @@
                             <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $user->email }}</td>
                             <td class="px-4 py-3">
                                 @php $role = $user->roles->first()?->name; @endphp
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium w-20 justify-center rounded-sm
                                     {{ $role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : '' }}
                                     {{ $role === 'lecturer' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : '' }}
                                     {{ $role === 'student' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : '' }}

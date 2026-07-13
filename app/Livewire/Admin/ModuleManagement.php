@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Module;
 use App\Models\Enrollment;
 use App\Models\User;
+use App\Models\ClassSession;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -34,6 +35,11 @@ class ModuleManagement extends Component
     public int    $formSemester     = 1;
     public string $formStatus       = 'UPCOMING';
     public array $formLecturerIds = [];
+
+    // Tab sorting
+    public ?int  $expandedClassId = null;
+    public string $studentSort    = 'name';
+    public string $studentSortDir = 'asc';
 
     public function updatedSearch(): void       { $this->resetPage(); }
     public function updatedStatusFilter(): void { $this->resetPage(); }
@@ -70,14 +76,8 @@ class ModuleManagement extends Component
             return null;
         }
 
-        return Module::with([
-            'creator',
-            'editors',
-            'classSessions',
-            'enrolledStudents',
-            'assignments',
-            'resources',
-        ])->find($this->selectedModuleId);
+        return Module::with(['creator', 'editors'])
+            ->find($this->selectedModuleId);
     }
 
     #[Computed]
@@ -102,12 +102,17 @@ class ModuleManagement extends Component
         $this->selectedModuleId = ($this->selectedModuleId === $id) ? null : $id;
         $this->mode             = 'view';
         $this->activeTab        = 'classes';
+        $this->expandedClassId  = null;
         unset($this->selectedModule);
     }
 
     public function setTab(string $tab): void
     {
-        $this->activeTab = $tab;
+        $this->activeTab       = $tab;
+        $this->expandedClassId = null;
+        $this->resetPage('classesPage');
+        $this->resetPage('studentsPage');
+        $this->resetPage('lecturersPage');
     }
 
     public function showCreateForm(): void
@@ -115,6 +120,13 @@ class ModuleManagement extends Component
         $this->selectedModuleId = null;
         $this->mode             = 'create';
         $this->resetFormFields();
+    }
+
+    public function removeLecturer(int $id): void
+    {
+        $this->formLecturerIds = array_values(
+            array_diff($this->formLecturerIds, [$id])
+        );
     }
 
     public function toggleLecturer(int $id): void
@@ -190,7 +202,8 @@ class ModuleManagement extends Component
             'formAcademicYear' => 'required|string',
             'formSemester'     => 'required|integer|in:1,2',
             'formStatus'       => 'required|in:UPCOMING,ACTIVE,ARCHIVED',
-            'formLecturerId'   => 'required|exists:users,id',
+            'formLecturerIds'   => 'required|array|min:1',
+            'formLecturerIds.*' => 'exists:users,id',
         ]);
 
         $module = Module::find($this->selectedModuleId);
@@ -204,10 +217,11 @@ class ModuleManagement extends Component
             'status'        => $this->formStatus,
         ]);
 
-        $module->editors()->sync([$this->formLecturerId => [
-            'role'       => 'editor',
-            'created_at' => now(),
-        ]]);
+        $module->editors()->sync(
+            collect($this->formLecturerIds)->mapWithKeys(fn ($id) => [
+                $id => ['role' => 'editor', 'created_at' => now()]
+            ])->toArray()
+        );
 
         $this->mode = 'view';
         $this->resetFormFields();
@@ -239,6 +253,85 @@ class ModuleManagement extends Component
         $this->formStatus       = 'UPCOMING';
         $this->formLecturerId   = null;
         $this->resetValidation();
+    }
+
+    public function resolveLocation(string $location): array
+    {
+        if (! str_starts_with($location, 'http')) {
+            return ['type' => 'text', 'value' => $location];
+        }
+
+        $label = match (true) {
+            str_contains($location, 'zoom.us')             => 'Zoom',
+            str_contains($location, 'teams.microsoft')     => 'Teams',
+            str_contains($location, 'meet.google')         => 'Google Meet',
+            str_contains($location, 'webex.com')           => 'Webex',
+            default                                        => 'Link',
+        };
+
+        return ['type' => 'link', 'value' => $location, 'label' => $label];
+    }
+
+    public function toggleClass(int $id): void
+    {
+        $this->expandedClassId = ($this->expandedClassId === $id) ? null : $id;
+    }
+
+    public function sortStudents(string $column): void
+    {
+        if ($this->studentSort === $column) {
+            $this->studentSortDir = $this->studentSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->studentSort    = $column;
+            $this->studentSortDir = 'asc';
+        }
+
+        unset($this->moduleStudents);
+    }
+
+    // Tab methods
+    #[Computed]
+    public function moduleClasses()
+    {
+        if (! $this->selectedModuleId) {
+            return collect();
+        }
+
+        return ClassSession::with('resourceFolder.resources')
+            ->where('module_id', $this->selectedModuleId)
+            ->orderBy('starts_at')
+            ->paginate(10, pageName: 'classesPage');
+    }
+
+    #[Computed]
+    public function moduleStudents()
+    {
+        if (! $this->selectedModuleId) {
+            return collect();
+        }
+
+        return User::join('enrollments', 'users.id', '=', 'enrollments.user_id')
+            ->where('enrollments.module_id', $this->selectedModuleId)
+            ->where('enrollments.status', '!=', 'DROPPED')
+            ->select('users.*', 'enrollments.status as enrollment_status', 'enrollments.enrolled_at')
+            ->orderBy(
+                $this->studentSort === 'status' ? 'enrollments.status' : "users.{$this->studentSort}",
+                $this->studentSortDir
+            )
+            ->paginate(10, pageName: 'studentsPage');
+    }
+
+    #[Computed]
+    public function moduleLecturers()
+    {
+        if (! $this->selectedModuleId) {
+            return collect();
+        }
+
+        return User::whereHas('moduleAssignments', fn ($q) =>
+            $q->where('module_id', $this->selectedModuleId)
+        )
+        ->paginate(10, pageName: 'lecturersPage');
     }
 
     public function render(): \Illuminate\View\View

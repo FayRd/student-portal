@@ -85,7 +85,7 @@
                             <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $module->credits }}</td>
                             <td class="px-4 py-3 text-gray-600 dark:text-gray-400">Sem {{ $module->semester }}</td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium w-20 justify-center rounded-sm
                                     {{ $module->status === 'ACTIVE'   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : '' }}
                                     {{ $module->status === 'UPCOMING' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : '' }}
                                     {{ $module->status === 'ARCHIVED' ? 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400' : '' }}
@@ -182,28 +182,36 @@
                             Assign lecturers
                         </label>
                         <div x-data="{ open: false, search: '' }" class="relative">
+
+                            {{-- Selected chips --}}
+                            @if (count($formLecturerIds) > 0)
+                                <div class="flex flex-wrap gap-1 mb-1">
+                                    @foreach ($this->lecturers->whereIn('id', $formLecturerIds) as $selected)
+                                        <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">
+                                            {{ $selected->name }}
+                                            <button
+                                                type="button"
+                                                wire:click.stop="removeLecturer({{ $selected->id }})"
+                                                class="hover:text-blue-900 leading-none"
+                                            >×</button>
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            {{-- Dropdown trigger --}}
                             <button
                                 type="button"
                                 @click="open = !open"
-                                class="w-full text-left text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between"
+                                class="w-full text-left text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between"
                             >
-                                <span>
-                                    @if (count($formLecturerIds) === 0)
-                                        <span class="text-gray-400">Select lecturers…</span>
-                                    @else
-                                        <div class="flex flex-wrap gap-1">
-                                            @foreach ($this->lecturers->whereIn('id', $formLecturerIds) as $selected)
-                                                <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">
-                                                    {{ $selected->name }}
-                                                    <button type="button" wire:click.stop="$set('formLecturerIds', array_values(array_diff($formLecturerIds, [{{ $selected->id }}])))" class="hover:text-blue-900">×</button>
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </span>
-                                <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                <span>{{ count($formLecturerIds) === 0 ? 'Select lecturers…' : count($formLecturerIds) . ' selected' }}</span>
+                                <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
                             </button>
 
+                            {{-- Dropdown list --}}
                             <div
                                 x-show="open"
                                 @click.outside="open = false"
@@ -227,7 +235,9 @@
                                             <div class="w-4 h-4 rounded border flex items-center justify-center shrink-0
                                                 {{ in_array($lecturer->id, $formLecturerIds) ? 'bg-blue-600 border-blue-600' : 'border-gray-300 dark:border-gray-500' }}">
                                                 @if (in_array($lecturer->id, $formLecturerIds))
-                                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                                    </svg>
                                                 @endif
                                             </div>
                                             <span class="text-sm text-gray-900 dark:text-gray-100">{{ $lecturer->name }}</span>
@@ -265,7 +275,7 @@
                     <div class="flex items-center gap-3">
                         <span class="font-mono text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{{ $module->code }}</span>
                         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $module->name }}</h3>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                        <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium w-20 justify-center rounded-sm
                             {{ $module->status === 'ACTIVE'   ? 'bg-green-100 text-green-700' : '' }}
                             {{ $module->status === 'UPCOMING' ? 'bg-blue-100 text-blue-700' : '' }}
                             {{ $module->status === 'ARCHIVED' ? 'bg-gray-100 text-gray-500' : '' }}
@@ -274,7 +284,15 @@
                         </span>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">
-                        {{ $module->credits }} credits · {{ $module->academic_year }} · Semester {{ $module->semester }} · {{ $module->editors->first()?->name ?? 'No lecturer assigned' }}
+                        {{ $module->credits }} credits · {{ $module->academic_year }} · Semester {{ $module->semester }} ·
+                        @if ($module->editors->isEmpty())
+                            No lecturer assigned
+                        @else
+                            {{ $module->editors->first()->name }}
+                            @if ($module->editors->count() > 1)
+                                +{{ $module->editors->count() - 1 }}
+                            @endif
+                        @endif
                     </p>
                 </div>
 
@@ -293,8 +311,7 @@
                 @foreach ([
                     ['key' => 'classes',  'label' => 'Classes ('  . $module->classSessions->count() . ')'],
                     ['key' => 'students', 'label' => 'Students (' . $module->enrolledStudents->count() . ')'],
-                    ['key' => 'lecturer', 'label' => 'Lecturer'],
-                    ['key' => 'resources','label' => 'Resources (' . $module->resources->count() . ')'],
+                    ['key' => 'lecturer', 'label' => 'Lecturers (' . $module->editors->count() . ')'],
                 ] as $tab)
                     <button
                         wire:click="setTab('{{ $tab['key'] }}')"
@@ -307,72 +324,203 @@
 
             {{-- Tab content --}}
             @if ($activeTab === 'classes')
-                <div class="flex flex-col gap-1">
-                    @forelse ($module->classSessions->sortBy('starts_at') as $session)
-                        <div class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-xs">
-                            <div>
-                                <span class="font-medium text-gray-900 dark:text-gray-100">{{ $session->title }}</span>
-                                <span class="ml-2 text-gray-500">{{ $session->starts_at->format('d M Y, H:i') }}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-gray-400">{{ $session->location }}</span>
-                                <span class="px-1.5 py-0.5 rounded text-xs {{ $session->type === 'PHYSICAL' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700' }}">
-                                    {{ ucfirst(strtolower($session->type)) }}
-                                </span>
-                            </div>
+                <div class="flex flex-col gap-2">
+                    @forelse ($this->moduleClasses as $session)
+                        @php
+                            $location = $this->resolveLocation($session->location);
+                            $isOpen   = $expandedClassId === $session->id;
+                        @endphp
+
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+
+                            {{-- Accordion header --}}
+                            <button
+                                type="button"
+                                wire:click="toggleClass({{ $session->id }})"
+                                class="w-full flex items-center justify-between px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="text-xs px-1.5 py-0.5 text-center font-medium shrink-0 w-15 rounded-sm
+                                        {{ $session->type === 'PHYSICAL' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' }}">
+                                        {{ ucfirst(strtolower($session->type)) }}
+                                    </span>
+                                    <span class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $session->title }}</span>
+                                </div>
+
+                                <div class="flex items-center gap-4 shrink-0 ml-4">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ $session->starts_at->format('d M Y, H:i') }} — {{ $session->ends_at->format('H:i') }}
+                                    </span>
+                                    <span class="text-xs text-gray-400">
+                                        @if ($location['type'] === 'link')
+                                            @ <a href="{{ $location['value'] }}" target="_blank" class="text-blue-500 hover:underline" wire:click.stop>{{ $location['label'] }}</a>
+                                        @else
+                                            @ {{ $location['value'] }}
+                                        @endif
+                                    </span>
+                                    <svg class="w-4 h-4 text-gray-400 transition-transform {{ $isOpen ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </div>
+                            </button>
+
+                            {{-- Accordion body --}}
+                            @if ($isOpen)
+                                <div class="grid grid-cols-2 gap-0 border-t border-gray-200 dark:border-gray-700">
+
+                                    {{-- Left: class details --}}
+                                    <div class="p-4 border-r border-gray-200 dark:border-gray-700">
+                                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Session details</p>
+                                        <div class="flex flex-col gap-2 text-xs">
+                                            <div class="flex gap-2">
+                                                <span class="text-gray-400 w-16 shrink-0">Type</span>
+                                                <span class="text-gray-900 dark:text-gray-100">{{ ucfirst(strtolower($session->type)) }}</span>
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <span class="text-gray-400 w-16 shrink-0">Location</span>
+                                                @if ($location['type'] === 'link')
+                                                    <a href="{{ $location['value'] }}" target="_blank" class="text-blue-500 hover:underline">{{ $location['label'] }}</a>
+                                                @else
+                                                    <span class="text-gray-900 dark:text-gray-100">{{ $location['value'] }}</span>
+                                                @endif
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <span class="text-gray-400 w-16 shrink-0">Starts</span>
+                                                <span class="text-gray-900 dark:text-gray-100">{{ $session->starts_at->format('d M Y, H:i') }}</span>
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <span class="text-gray-400 w-16 shrink-0">Ends</span>
+                                                <span class="text-gray-900 dark:text-gray-100">{{ $session->ends_at->format('H:i') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Right: resource folder contents --}}
+                                    <div class="p-4">
+                                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Resources</p>
+                                        @if ($session->resourceFolder)
+                                            @php
+                                                $items = $session->resourceFolder->children
+                                                    ->merge($session->resourceFolder->resources);
+                                            @endphp
+                                            @if ($items->isEmpty())
+                                                <p class="text-xs text-gray-400">No resources in this folder.</p>
+                                            @else
+                                                <div class="grid grid-cols-3 gap-2">
+                                                    @foreach ($session->resourceFolder->children as $folder)
+                                                        <div class="flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-center">
+                                                            <svg class="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H2v16h20V6H12l-2-2z"/></svg>
+                                                            <span class="text-xs text-gray-700 dark:text-gray-300 truncate w-full text-center leading-tight">{{ $folder->name }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                    @foreach ($session->resourceFolder->resources as $resource)
+                                                        <div class="flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-center">
+                                                            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                            <span class="text-xs text-gray-700 dark:text-gray-300 truncate w-full text-center leading-tight">{{ $resource->title }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        @else
+                                            <p class="text-xs text-gray-400">No resource folder linked to this session.</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     @empty
                         <p class="text-xs text-gray-400 py-4 text-center">No classes scheduled.</p>
                     @endforelse
+
+                    <div class="mt-2">{{ $this->moduleClasses->links() }}</div>
                 </div>
             @endif
 
             @if ($activeTab === 'students')
-                <div class="flex flex-col gap-1">
-                    @forelse ($module->enrolledStudents as $student)
-                        <div class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-xs">
-                            <span class="font-medium text-gray-900 dark:text-gray-100">{{ $student->name }}</span>
-                            <div class="flex items-center gap-3">
-                                <span class="text-gray-400 font-mono">{{ $student->institutional_id }}</span>
-                                <span class="px-1.5 py-0.5 rounded {{ $student->pivot->status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                                    {{ ucfirst(strtolower($student->pivot->status)) }}
-                                </span>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-xs text-gray-400 py-4 text-center">No students enrolled.</p>
-                    @endforelse
-                </div>
-            @endif
-
-            @if ($activeTab === 'lecturer')
-                @php $lecturer = $module->editors->first(); @endphp
-                @if ($lecturer)
-                    <div class="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 flex items-center justify-center font-medium text-sm">
-                            {{ strtoupper(substr($lecturer->name, 0, 1)) }}
-                        </div>
-                        <div>
-                            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $lecturer->name }}</div>
-                            <div class="text-xs text-gray-500">{{ $lecturer->email }} · {{ $lecturer->institutional_id }}</div>
-                        </div>
-                    </div>
+                @if ($this->moduleStudents->isEmpty())
+                    <p class="text-xs text-gray-400 py-4 text-center">No students enrolled.</p>
                 @else
-                    <p class="text-xs text-gray-400 py-4 text-center">No lecturer assigned.</p>
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-xs text-gray-400 dark:text-gray-500">
+                                <th class="text-left py-2 pr-4 font-medium">
+                                    <button wire:click="sortStudents('name')" class="flex items-center gap-1 hover:text-gray-600 dark:hover:text-gray-300">
+                                        Name
+                                        @if ($studentSort === 'name')
+                                            <span>{{ $studentSortDir === 'asc' ? '↑' : '↓' }}</span>
+                                        @endif
+                                    </button>
+                                </th>
+                                <th class="text-left py-2 pr-4 font-medium">
+                                    <button wire:click="sortStudents('institutional_id')" class="flex items-center gap-1 hover:text-gray-600 dark:hover:text-gray-300">
+                                        ID
+                                        @if ($studentSort === 'institutional_id')
+                                            <span>{{ $studentSortDir === 'asc' ? '↑' : '↓' }}</span>
+                                        @endif
+                                    </button>
+                                </th>
+                                <th class="text-left py-2 font-medium">
+                                    <button wire:click="sortStudents('status')" class="flex items-center gap-1 hover:text-gray-600 dark:hover:text-gray-300">
+                                        Status
+                                        @if ($studentSort === 'status')
+                                            <span>{{ $studentSortDir === 'asc' ? '↑' : '↓' }}</span>
+                                        @endif
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                            @foreach ($this->moduleStudents as $student)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                    <td class="py-2.5 pr-4">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 flex items-center justify-center text-xs font-medium shrink-0">
+                                                {{ strtoupper(substr($student->name, 0, 1) . (strstr($student->name, ' ') ? substr(strstr($student->name, ' '), 1, 1) : '')) }}
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $student->name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5 pr-4 text-xs font-mono text-gray-500 dark:text-gray-400">
+                                        {{ $student->institutional_id }}
+                                    </td>
+                                    <td class="py-2.5">
+                                        @php $status = $student->enrollment_status ?? 'ACTIVE'; @endphp
+                                        <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium w-20 justify-center rounded-sm
+                                            {{ $status === 'ACTIVE'    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : '' }}
+                                            {{ $status === 'COMPLETED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : '' }}
+                                            {{ $status === 'DROPPED'   ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : '' }}
+                                        ">
+                                            {{ ucfirst(strtolower($status)) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                    <div class="mt-2">{{ $this->moduleStudents->links() }}</div>
                 @endif
             @endif
 
-            @if ($activeTab === 'resources')
-                <div class="flex flex-col gap-1">
-                    @forelse ($module->resources as $resource)
-                        <div class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-xs">
-                            <span class="font-medium text-gray-900 dark:text-gray-100">{{ $resource->title }}</span>
-                            <span class="text-gray-400 font-mono">{{ $resource->file_name }}</span>
+            @if ($activeTab === 'lecturer')
+                <div class="grid grid-cols-2 gap-3">
+                    @forelse ($this->moduleLecturers as $lecturer)
+                        <div class="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 flex items-center justify-center font-medium text-sm shrink-0">
+                                {{ strtoupper(substr($lecturer->name, 0, 1)) }}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $lecturer->name }}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $lecturer->email }}</div>
+                                <div class="text-xs text-gray-400 font-mono">{{ $lecturer->institutional_id }}</div>
+                            </div>
                         </div>
                     @empty
-                        <p class="text-xs text-gray-400 py-4 text-center">No resources uploaded.</p>
+                        <p class="text-xs text-gray-400 py-4 col-span-2 text-center">No lecturers assigned.</p>
                     @endforelse
                 </div>
+                @if ($this->moduleLecturers->hasPages())
+                    <div class="mt-2">{{ $this->moduleLecturers->links() }}</div>
+                @endif
             @endif
         @endif
     </div>
