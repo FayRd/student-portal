@@ -333,19 +333,39 @@
             </div>
 
             {{-- Tabs --}}
-            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-4">
-                @foreach ([
-                    ['key' => 'classes',  'label' => 'Classes ('  . $module->classSessions->count() . ')'],
-                    ['key' => 'students', 'label' => 'Students (' . $module->enrolledStudents->count() . ')'],
-                    ['key' => 'lecturer', 'label' => 'Lecturers (' . $module->editors->count() . ')'],
-                ] as $tab)
-                    <button
-                        wire:click="setTab('{{ $tab['key'] }}')"
-                        class="px-4 py-2 text-xs font-medium border-b-2 transition-colors {{ $activeTab === $tab['key'] ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400' }}"
-                    >
-                        {{ $tab['label'] }}
+            <div class="flex items-center border-b border-gray-200 dark:border-gray-700 mb-4">
+                <div class="flex gap-1 flex-1">
+                    @foreach ([
+                        ['key' => 'classes',  'label' => 'Classes ('  . $this->moduleClasses->total() . ')'],
+                        ['key' => 'students', 'label' => 'Students (' . $this->moduleStudents->total() . ')'],
+                        ['key' => 'lecturer', 'label' => 'Lecturers (' . $this->moduleLecturers->total() . ')'],
+                    ] as $tab)
+                        <button
+                            wire:click="setTab('{{ $tab['key'] }}')"
+                            class="px-4 py-2 text-xs font-medium border-b-2 transition-colors {{ $activeTab === $tab['key'] ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400' }}"
+                        >
+                            {{ $tab['label'] }}
+                        </button>
+                    @endforeach
+                </div>
+
+                {{-- Tab action buttons --}}
+                @if ($activeTab === 'classes')
+                    <button wire:click="openClassModal" class="mb-1 flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add class
                     </button>
-                @endforeach
+                @elseif ($activeTab === 'students')
+                    <button wire:click="openStudentModal" class="mb-1 flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Enroll students
+                    </button>
+                @elseif ($activeTab === 'lecturer')
+                    <button wire:click="openLecturerModal" class="mb-1 flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Assign lecturer
+                    </button>
+                @endif
             </div>
 
             {{-- Tab content --}}
@@ -405,7 +425,12 @@
                                 @endif
                             </div>
                         @empty
-                            <p class="text-xs text-gray-400 py-4 text-center">No classes scheduled.</p>
+                            <div class="flex flex-col items-center justify-center py-8 gap-3 text-gray-400 dark:text-gray-500">
+                                <p class="text-xs">No classes scheduled.</p>
+                                <button wire:click="openClassModal" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                </button>
+                            </div>
                         @endforelse
 
                         <div class="mt-2">{{ $this->moduleClasses->links() }}</div>
@@ -436,7 +461,12 @@
                                 </div>
                             @endif
                         @elseif ($expandedClassId)
-                            <p class="text-xs text-gray-400">No resource folder linked to this session.</p>
+                            <div class="flex flex-col items-center justify-center h-full gap-3 py-8 text-gray-400 dark:text-gray-500">
+                                <p class="text-xs">No resource folder linked to this session.</p>
+                                <button class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                </button>
+                            </div>
                         @else
                             <div class="flex flex-col items-center justify-center h-full text-gray-300 dark:text-gray-600 gap-2 py-8">
                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
@@ -449,7 +479,12 @@
 
             @if ($activeTab === 'students')
                 @if ($this->moduleStudents->isEmpty())
-                    <p class="text-xs text-gray-400 py-4 text-center">No students enrolled.</p>
+                    <div class="flex flex-col items-center justify-center py-8 gap-3 text-gray-400 dark:text-gray-500">
+                        <p class="text-xs">No students enrolled.</p>
+                        <button wire:click="openStudentModal" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        </button>
+                    </div>
                 @else
                     <table class="w-full text-sm table-fixed">
                         <thead>
@@ -526,7 +561,12 @@
                             </div>
                         </div>
                     @empty
-                        <p class="text-xs text-gray-400 py-4 col-span-3 text-center">No lecturers assigned.</p>
+                        <div class="flex flex-col items-center justify-center py-8 gap-3 col-span-3 text-gray-400 dark:text-gray-500">
+                            <p class="text-xs">No lecturers assigned.</p>
+                            <button wire:click="openLecturerModal" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            </button>
+                        </div>
                     @endforelse
                 </div>
                 @if ($this->moduleLecturers->hasPages())
@@ -535,4 +575,268 @@
             @endif
         @endif
     </div>
+    {{-- ── CLASS CREATION MODAL ── --}}
+    @if ($showClassModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Add class session</h3>
+                </div>
+
+                <div class="p-5 flex flex-col gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Session title</label>
+                        <input wire:model="classTitle" type="text" placeholder="e.g. Week 1 — Introduction" class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        @error('classTitle') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Starts at</label>
+                            <input wire:model="classStartsAt" type="datetime-local" class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @error('classStartsAt') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Ends at</label>
+                            <input wire:model="classEndsAt" type="datetime-local" class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            @error('classEndsAt') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Type</label>
+                        <select wire:model="classType" class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="PHYSICAL">Physical</option>
+                            <option value="VIRTUAL">Virtual</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Location</label>
+                        <input wire:model="classLocation" type="text" placeholder="Room 101 or https://zoom.us/j/..." class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        @error('classLocation') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                    <button
+                        wire:click="closeClassModal"
+                        wire:confirm="Discard this class? All changes will be lost."
+                        class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+                    >
+                        Discard
+                    </button>
+                    <button
+                        wire:click="createClass"
+                        class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                        Create class
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ── STUDENT ENROLMENT MODAL ── --}}
+    @if ($showStudentModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl mx-4 border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Enrol students</h3>
+                </div>
+
+                <div class="p-5">
+                    <div class="relative mb-3">
+                        <input
+                            wire:model.live.debounce.300ms="modalSearch"
+                            type="text"
+                            placeholder="Search by name or ID…"
+                            class="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                        <svg class="absolute left-2.5 top-2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+                    </div>
+
+                    <table class="w-full text-sm table-fixed">
+                        <thead>
+                            <tr class="text-xs text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700">
+                                <th class="w-8 py-2 text-left"></th>
+                                <th class="py-2 text-left font-medium w-1/2">Name</th>
+                                <th class="py-2 text-left font-medium">ID</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                            @forelse ($this->availableStudents as $student)
+                                <tr
+                                    wire:click="toggleStudent({{ $student->id }})"
+                                    class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors {{ in_array($student->id, $selectedStudentIds) ? 'bg-blue-50 dark:bg-blue-900/10' : '' }}"
+                                >
+                                    <td class="py-2.5">
+                                        <div class="w-4 h-4 rounded border flex items-center justify-center
+                                            {{ in_array($student->id, $selectedStudentIds) ? 'bg-blue-600 border-blue-600' : 'border-gray-300 dark:border-gray-500' }}">
+                                            @if (in_array($student->id, $selectedStudentIds))
+                                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 flex items-center justify-center text-xs font-medium shrink-0">
+                                                {{ strtoupper(substr($student->name, 0, 1)) }}
+                                            </div>
+                                            <span class="text-sm text-gray-900 dark:text-gray-100">{{ $student->name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5 text-xs font-mono text-gray-500 dark:text-gray-400">
+                                        {{ $student->institutional_id }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="py-6 text-center text-xs text-gray-400">No available students found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+                    <div class="mt-2">{{ $this->availableStudents->links() }}</div>
+
+                    {{-- Selection summary --}}
+                    @if (count($selectedStudentIds) > 0)
+                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                            <p class="text-xs text-gray-500 mb-2">
+                                <span class="font-medium text-gray-900 dark:text-gray-100">{{ count($selectedStudentIds) }}</span>
+                                {{ count($selectedStudentIds) === 1 ? 'student' : 'students' }} selected
+                            </p>
+                            <div class="flex flex-wrap gap-1">
+                                @foreach ($this->selectedStudents as $s)
+                                    <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">
+                                        {{ $s->name }}
+                                        <button type="button" wire:click="toggleStudent({{ $s->id }})" class="hover:text-blue-900 leading-none">×</button>
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                    <button
+                        wire:click="closeStudentModal"
+                        wire:confirm="Discard selection? No students will be enrolled."
+                        class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+                    >
+                        Discard
+                    </button>
+                    <button
+                        wire:click="enrollStudents"
+                        @disabled(empty($selectedStudentIds))
+                        class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                    >
+                        Enrol {{ count($selectedStudentIds) > 0 ? count($selectedStudentIds) : '' }} {{ count($selectedStudentIds) === 1 ? 'student' : 'students' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ── LECTURER ASSIGNMENT MODAL ── --}}
+    @if ($showLecturerModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl mx-4 border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Assign lecturers</h3>
+                </div>
+
+                <div class="p-5">
+                    <div class="relative mb-3">
+                        <input
+                            wire:model.live.debounce.300ms="modalSearch"
+                            type="text"
+                            placeholder="Search by name or ID…"
+                            class="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                        <svg class="absolute left-2.5 top-2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+                    </div>
+
+                    <table class="w-full text-sm table-fixed">
+                        <thead>
+                            <tr class="text-xs text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700">
+                                <th class="w-8 py-2 text-left"></th>
+                                <th class="py-2 text-left font-medium w-1/2">Name</th>
+                                <th class="py-2 text-left font-medium">ID</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                            @forelse ($this->availableLecturers as $lecturer)
+                                <tr
+                                    wire:click="toggleModalLecturer({{ $lecturer->id }})"
+                                    class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors {{ in_array($lecturer->id, $selectedLecturerIds) ? 'bg-blue-50 dark:bg-blue-900/10' : '' }}"
+                                >
+                                    <td class="py-2.5">
+                                        <div class="w-4 h-4 rounded border flex items-center justify-center
+                                            {{ in_array($lecturer->id, $selectedLecturerIds) ? 'bg-blue-600 border-blue-600' : 'border-gray-300 dark:border-gray-500' }}">
+                                            @if (in_array($lecturer->id, $selectedLecturerIds))
+                                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 flex items-center justify-center text-xs font-medium shrink-0">
+                                                {{ strtoupper(substr($lecturer->name, 0, 1)) }}
+                                            </div>
+                                            <span class="text-sm text-gray-900 dark:text-gray-100">{{ $lecturer->name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5 text-xs font-mono text-gray-500 dark:text-gray-400">
+                                        {{ $lecturer->institutional_id }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="py-6 text-center text-xs text-gray-400">No available lecturers found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+                    <div class="mt-2">{{ $this->availableLecturers->links() }}</div>
+
+                    @if (count($selectedLecturerIds) > 0)
+                        <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                            <p class="text-xs text-gray-500 mb-2">
+                                <span class="font-medium text-gray-900 dark:text-gray-100">{{ count($selectedLecturerIds) }}</span>
+                                {{ count($selectedLecturerIds) === 1 ? 'lecturer' : 'lecturers' }} selected
+                            </p>
+                            <div class="flex flex-wrap gap-1">
+                                @foreach ($this->selectedLecturersForModal as $l)
+                                    <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">
+                                        {{ $l->name }}
+                                        <button type="button" wire:click="toggleModalLecturer({{ $l->id }})" class="hover:text-blue-900 leading-none">×</button>
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                    <button
+                        wire:click="closeLecturerModal"
+                        wire:confirm="Discard selection? No lecturers will be assigned."
+                        class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+                    >
+                        Discard
+                    </button>
+                    <button
+                        wire:click="assignLecturers"
+                        @disabled(empty($selectedLecturerIds))
+                        class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                    >
+                        Assign {{ count($selectedLecturerIds) > 0 ? count($selectedLecturerIds) : '' }} {{ count($selectedLecturerIds) === 1 ? 'lecturer' : 'lecturers' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

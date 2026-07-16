@@ -6,6 +6,7 @@ use App\Models\Module;
 use App\Models\Enrollment;
 use App\Models\User;
 use App\Models\ClassSession;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -40,6 +41,23 @@ class ModuleManagement extends Component
     public ?int  $expandedClassId = null;
     public string $studentSort    = 'name';
     public string $studentSortDir = 'asc';
+
+    // Modal visibility
+    public bool $showClassModal    = false;
+    public bool $showStudentModal  = false;
+    public bool $showLecturerModal = false;
+
+    // Class modal fields
+    public string  $classTitle     = '';
+    public string  $classLocation  = '';
+    public string  $classType      = 'PHYSICAL';
+    public string  $classStartsAt  = '';
+    public string  $classEndsAt    = '';
+
+    // Student/Lecturer modal fields
+    public string $modalSearch          = '';
+    public array  $selectedStudentIds   = [];
+    public array  $selectedLecturerIds  = [];
 
     public function updatedSearch(): void       { $this->resetPage(); }
     public function updatedStatusFilter(): void { $this->resetPage(); }
@@ -252,7 +270,7 @@ class ModuleManagement extends Component
         $this->formAcademicYear = '2025/2026';
         $this->formSemester     = 1;
         $this->formStatus       = 'UPCOMING';
-        $this->formLecturerId   = null;
+        $this->formLecturerIds   = [];
         $this->resetValidation();
     }
 
@@ -288,6 +306,201 @@ class ModuleManagement extends Component
         }
 
         unset($this->moduleStudents);
+    }
+
+    #[Computed]
+    public function availableStudents()
+    {
+        $enrolled = Enrollment::where('module_id', $this->selectedModuleId)
+            ->pluck('user_id');
+
+        return User::role('student')
+            ->whereNotIn('id', $enrolled)
+            ->when($this->modalSearch, fn ($q) => $q->where(function ($q) {
+                $q->where('name', 'like', "%{$this->modalSearch}%")
+                ->orWhere('institutional_id', 'like', "%{$this->modalSearch}%");
+            }))
+            ->orderBy('name')
+            ->paginate(8, pageName: 'availableStudentsPage');
+    }
+
+    #[Computed]
+    public function availableLecturers()
+    {
+        $assigned = \DB::table('module_user')
+            ->where('module_id', $this->selectedModuleId)
+            ->pluck('user_id');
+
+        return User::role('lecturer')
+            ->whereNotIn('id', $assigned)
+            ->when($this->modalSearch, fn ($q) => $q->where(function ($q) {
+                $q->where('name', 'like', "%{$this->modalSearch}%")
+                ->orWhere('institutional_id', 'like', "%{$this->modalSearch}%");
+            }))
+            ->orderBy('name')
+            ->paginate(8, pageName: 'availableLecturersPage');
+    }
+
+    #[Computed]
+    public function selectedStudents()
+    {
+        if (empty($this->selectedStudentIds)) {
+            return collect();
+        }
+        return User::whereIn('id', $this->selectedStudentIds)->get(['id', 'name']);
+    }
+
+    #[Computed]
+    public function selectedLecturersForModal()
+    {
+        if (empty($this->selectedLecturerIds)) {
+            return collect();
+        }
+        return User::whereIn('id', $this->selectedLecturerIds)->get(['id', 'name']);
+    }
+
+    public function updatedModalSearch(): void
+    {
+        $this->resetPage('availableStudentsPage');
+        $this->resetPage('availableLecturersPage');
+        unset($this->availableStudents, $this->availableLecturers);
+    }
+
+    public function openClassModal(): void
+    {
+        $this->showClassModal = true;
+        $this->classTitle     = '';
+        $this->classLocation  = '';
+        $this->classType      = 'PHYSICAL';
+        $this->classStartsAt  = '';
+        $this->classEndsAt    = '';
+        $this->resetValidation();
+    }
+
+    public function closeClassModal(): void
+    {
+        $this->showClassModal = false;
+    }
+
+    public function createClass(): void
+    {
+        $this->validate([
+            'classTitle'    => 'required|string|max:255',
+            'classLocation' => 'required|string|max:255',
+            'classType'     => 'required|in:PHYSICAL,VIRTUAL',
+            'classStartsAt' => 'required|date',
+            'classEndsAt'   => 'required|date|after:classStartsAt',
+        ]);
+
+        $folder = \App\Models\ResourceFolder::create([
+            'module_id' => $this->selectedModuleId,
+            'parent_id' => null,
+            'name'      => $this->classTitle,
+            'order'     => 0,
+        ]);
+
+        ClassSession::create([
+            'module_id'          => $this->selectedModuleId,
+            'resource_folder_id' => $folder->id,
+            'title'              => $this->classTitle,
+            'location'           => $this->classLocation,
+            'type'               => $this->classType,
+            'starts_at'          => $this->classStartsAt,
+            'ends_at'            => $this->classEndsAt,
+        ]);
+
+        $this->showClassModal = false;
+        unset($this->moduleClasses, $this->stats);
+    }
+
+    public function openStudentModal(): void
+    {
+        $this->showStudentModal    = true;
+        $this->modalSearch         = '';
+        $this->selectedStudentIds  = [];
+        unset($this->availableStudents, $this->selectedStudents);
+    }
+
+    public function closeStudentModal(): void
+    {
+        $this->showStudentModal = false;
+    }
+
+    public function toggleStudent(int $id): void
+    {
+        if (in_array($id, $this->selectedStudentIds)) {
+            $this->selectedStudentIds = array_values(array_diff($this->selectedStudentIds, [$id]));
+        } else {
+            $this->selectedStudentIds[] = $id;
+        }
+        unset($this->selectedStudents);
+    }
+
+    public function enrollStudents(): void
+    {
+        if (empty($this->selectedStudentIds)) {
+            return;
+        }
+
+        foreach ($this->selectedStudentIds as $studentId) {
+            Enrollment::firstOrCreate(
+                ['user_id' => $studentId, 'module_id' => $this->selectedModuleId],
+                ['status' => 'ACTIVE', 'enrolled_at' => now()]
+            );
+        }
+
+        $this->showStudentModal   = false;
+        $this->selectedStudentIds = [];
+        unset($this->moduleStudents, $this->stats, $this->availableStudents);
+    }
+
+    public function openLecturerModal(): void
+    {
+        $this->showLecturerModal    = true;
+        $this->modalSearch          = '';
+        $this->selectedLecturerIds  = [];
+        unset($this->availableLecturers, $this->selectedLecturersForModal);
+    }
+
+    public function closeLecturerModal(): void
+    {
+        $this->showLecturerModal = false;
+    }
+
+    public function toggleModalLecturer(int $id): void
+    {
+        if (in_array($id, $this->selectedLecturerIds)) {
+            $this->selectedLecturerIds = array_values(array_diff($this->selectedLecturerIds, [$id]));
+        } else {
+            $this->selectedLecturerIds[] = $id;
+        }
+        unset($this->selectedLecturersForModal);
+    }
+
+    public function assignLecturers(): void
+    {
+        if (empty($this->selectedLecturerIds)) {
+            return;
+        }
+
+        $newPivots = collect($this->selectedLecturerIds)
+            ->mapWithKeys(fn ($id) => [
+                $id => ['role' => 'editor', 'created_at' => now()]
+            ])->toArray();
+
+        $module = Module::find($this->selectedModuleId);
+        $existing = $module->editors()->pluck('users.id')->toArray();
+        $all = array_unique(array_merge($existing, $this->selectedLecturerIds));
+
+        $module->editors()->sync(
+            collect($all)->mapWithKeys(fn ($id) => [
+                $id => ['role' => 'editor', 'created_at' => now()]
+            ])->toArray()
+        );
+
+        $this->showLecturerModal   = false;
+        $this->selectedLecturerIds = [];
+        unset($this->moduleLecturers, $this->selectedModule, $this->availableLecturers);
     }
 
     // Tab methods
