@@ -440,10 +440,15 @@
                     <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 min-h-32">
                         @if ($expandedClassId && $this->moduleClasses->firstWhere('id', $expandedClassId)?->resourceFolder)
                             @php $folder = $this->moduleClasses->firstWhere('id', $expandedClassId)->resourceFolder; @endphp
-                            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">{{ $folder->name }}</p>
+                            <div class="border-b border-gray-200 dark:border-gray-700 pb-2.5 text-xs font-medium text-gray-400 uppercase tracking-wide">{{ $folder->name }}</div>
                             @php $items = $folder->children->merge($folder->resources); @endphp
                             @if ($items->isEmpty())
-                                <p class="text-xs text-gray-400">No resources in this folder.</p>
+                                <div class="flex flex-col items-center justify-center h-full w-full gap-3 text-gray-400 dark:text-gray-500">
+                                    <div class="text-xs">There are no resources.</div>
+                                    <button class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    </button>
+                                </div>
                             @else
                                 <div class="grid grid-cols-7 gap-2">
                                     @foreach ($folder->children as $child)
@@ -468,7 +473,7 @@
                                 </button>
                             </div>
                         @else
-                            <div class="flex flex-col items-center justify-center h-full text-gray-300 dark:text-gray-600 gap-2 py-8">
+                            <div class="flex flex-col items-center justify-center h-full gap-3 py-4 text-gray-400 dark:text-gray-500 min-h-50">
                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                                 <span class="text-xs">Open a class to view resources</span>
                             </div>
