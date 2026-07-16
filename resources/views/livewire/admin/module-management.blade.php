@@ -131,7 +131,7 @@
     </div>
 
     {{-- ── SECTION 3: Detail panel ── --}}
-    <div class="bg-white dark:bg-gray-800 p-4">
+    <div class="bg-white dark:bg-gray-800 p-4 min-h-80">
 
         {{-- Empty state --}}
         @if (! $this->selectedModule && $mode === 'view')
@@ -325,6 +325,11 @@
                         Delete
                     </button>
                 </div>
+            </div>
+
+            {{-- Description --}}
+            <div class="text-sm text-gray-900 dark:text-gray-100 mb-3 py-3">
+                {{ $module->description }}
             </div>
 
             {{-- Tabs --}}
