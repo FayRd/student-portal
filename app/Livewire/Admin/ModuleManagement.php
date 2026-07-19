@@ -59,6 +59,11 @@ class ModuleManagement extends Component
     public array  $selectedStudentIds   = [];
     public array  $selectedLecturerIds  = [];
 
+    // Assignments and Submissions tabs
+    public ?int $selectedAssignmentId = null;
+    public string $submissionSort    = 'name';
+    public string $submissionSortDir = 'asc';
+
     public function updatedSearch(): void       { $this->resetPage(); }
     public function updatedStatusFilter(): void { $this->resetPage(); }
 
@@ -121,6 +126,7 @@ class ModuleManagement extends Component
         $this->selectedModuleId = ($this->selectedModuleId === $id) ? null : $id;
         $this->mode             = 'view';
         $this->activeTab        = 'classes';
+        $this->selectedAssignmentId = null;
         $this->expandedClassId  = null;
         unset($this->selectedModule);
     }
@@ -129,6 +135,9 @@ class ModuleManagement extends Component
     {
         $this->activeTab       = $tab;
         $this->expandedClassId = null;
+        $this->selectedAssignmentId = null;
+        $this->resetPage('assignmentsPage');
+        $this->resetPage('submissionsPage');
         $this->resetPage('classesPage');
         $this->resetPage('studentsPage');
         $this->resetPage('lecturersPage');
@@ -503,6 +512,109 @@ class ModuleManagement extends Component
         unset($this->moduleLecturers, $this->selectedModule, $this->availableLecturers);
     }
 
+    public function selectAssignment(int $id): void
+    {
+        $this->selectedAssignmentId = ($this->selectedAssignmentId === $id) ? null : $id;
+        $this->resetPage('submissionsPage');
+        unset($this->moduleSubmissions, $this->selectedAssignment);
+    }
+
+    public function sortSubmissions(string $column): void
+    {
+        if ($this->submissionSort === $column) {
+            $this->submissionSortDir = $this->submissionSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->submissionSort    = $column;
+            $this->submissionSortDir = 'asc';
+        }
+        unset($this->moduleSubmissions);
+    }
+
+    public function formatFileSize(int $bytes): string
+    {
+        return match (true) {
+            $bytes >= 1_073_741_824 => number_format($bytes / 1_073_741_824, 2) . ' GB',
+            $bytes >= 1_048_576     => number_format($bytes / 1_048_576, 2) . ' MB',
+            default                 => number_format($bytes / 1_024, 2) . ' KB',
+        };
+    }
+
+    public function formatMimeType(string $mime): string
+    {
+        return match ($mime) {
+            'application/pdf'                                                                          => 'PDF',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword' => 'Word',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation'               => 'PowerPoint',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'                       => 'Excel',
+            'application/zip', 'application/x-zip-compressed'                                         => 'ZIP',
+            'text/plain'                                                                               => 'Text',
+            'video/mp4'                                                                               => 'MP4',
+            'audio/mpeg'                                                                              => 'MP3',
+            default                                                                                   => $mime,
+        };
+    }
+
+    #[Computed]
+    public function moduleAssignments()
+    {
+        if (! $this->selectedModuleId) {
+            return collect();
+        }
+
+        return \App\Models\Assignment::where('module_id', $this->selectedModuleId)
+            ->orderBy('due_at')
+            ->paginate(12, pageName: 'assignmentsPage');
+    }
+
+    #[Computed]
+    public function selectedAssignment(): ?\App\Models\Assignment
+    {
+        if (! $this->selectedAssignmentId) {
+            return null;
+        }
+        return \App\Models\Assignment::find($this->selectedAssignmentId);
+    }
+
+    #[Computed]
+    public function moduleSubmissions()
+    {
+        if (! $this->selectedAssignmentId || ! $this->selectedModuleId) {
+            return collect();
+        }
+
+        $sortColumn = match ($this->submissionSort) {
+            'name'           => 'users.name',
+            'file_name'      => 'submissions.file_name',
+            'file_size'      => 'submissions.file_size',
+            'mime_type'      => 'submissions.mime_type',
+            'status'         => 'submissions.status',
+            'submitted_at'   => 'submissions.submitted_at',
+            'processed_at'   => 'submissions.processed_at',
+            default          => 'users.name',
+        };
+
+        return User::join('enrollments', 'users.id', '=', 'enrollments.user_id')
+            ->where('enrollments.module_id', $this->selectedModuleId)
+            ->where('enrollments.status', '!=', 'DROPPED')
+            ->leftJoin('submissions', function ($join) {
+                $join->on('users.id', '=', 'submissions.user_id')
+                    ->where('submissions.assignment_id', '=', $this->selectedAssignmentId);
+            })
+            ->select(
+                'users.id',
+                'users.name',
+                'users.institutional_id',
+                'submissions.file_name',
+                'submissions.file_size',
+                'submissions.mime_type',
+                'submissions.status as submission_status',
+                'submissions.submitted_at',
+                'submissions.processed_at',
+            )
+            ->orderBy($sortColumn, $this->submissionSortDir)
+            ->paginate(10, pageName: 'submissionsPage');
+    }
+
     // Tab methods
     #[Computed]
     public function moduleClasses()
@@ -511,7 +623,7 @@ class ModuleManagement extends Component
             return collect();
         }
 
-        return ClassSession::with('resourceFolder.resources')
+        return ClassSession::with('resourceFolder.resources', 'resourceFolder.children')
             ->where('module_id', $this->selectedModuleId)
             ->orderBy('starts_at')
             ->paginate(10, pageName: 'classesPage');
