@@ -453,7 +453,7 @@
                                     </button>
                                 </div>
                             @else
-                                <div class="grid grid-cols-7 gap-2">
+                                <div class="grid grid-cols-7 gap-2 mt-4">
                                     @foreach ($folder->children as $child)
                                         <div class="flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-center">
                                             <svg class="w-12 h-12 text-yellow-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H2v16h20V6H12l-2-2z"/></svg>
