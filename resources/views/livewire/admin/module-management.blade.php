@@ -506,10 +506,14 @@
 
                                         {{-- Files --}}
                                         @foreach ($contents['resources'] as $resource)
-                                            <div class="flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-center">
+                                            <a
+                                                href="{{ route('resources.download', $resource->id) }}"
+                                                class="flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-center transition-colors"
+                                                title="{{ $resource->file_name }}"
+                                            >
                                                 <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                 <span class="text-xs text-gray-700 dark:text-gray-300 truncate w-full leading-tight">{{ $resource->title }}</span>
-                                            </div>
+                                            </a>
                                         @endforeach
 
                                         {{-- Add button -- always last in grid --}}
@@ -541,7 +545,7 @@
                     <table class="w-full text-sm table-fixed">
                         <thead>
                             <tr class="text-xs text-gray-400 dark:text-gray-500">
-                                <th class="text-left py-2 pr-4 font-medium w-1/2">
+                                <th class="text-left py-2 pr-4 font-medium w-5/12">
                                     <button wire:click="sortStudents('name')" class="flex items-center gap-1 hover:text-gray-600 dark:hover:text-gray-300">
                                         Name
                                         @if ($studentSort === 'name')
@@ -549,7 +553,7 @@
                                         @endif
                                     </button>
                                 </th>
-                                <th class="text-left py-2 pr-4 font-medium w-1/4">
+                                <th class="text-left py-2 pr-4 font-medium w-3/12">
                                     <button wire:click="sortStudents('institutional_id')" class="flex items-center gap-1 hover:text-gray-600 dark:hover:text-gray-300">
                                         ID
                                         @if ($studentSort === 'institutional_id')
@@ -557,7 +561,7 @@
                                         @endif
                                     </button>
                                 </th>
-                                <th class="text-left py-2 font-medium w-1/4">
+                                <th class="text-left py-2 font-medium w-10">
                                     <button wire:click="sortStudents('status')" class="flex items-center gap-1 hover:text-gray-600 dark:hover:text-gray-300">
                                         Status
                                         @if ($studentSort === 'status')
@@ -565,11 +569,17 @@
                                         @endif
                                     </button>
                                 </th>
+                                <th class="py-2 font-medium w-5"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
                             @foreach ($this->moduleStudents as $student)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                <tr
+                                    x-data="{ hovered: false }"
+                                    @mouseenter="hovered = true"
+                                    @mouseleave="hovered = false"
+                                    class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                                >
                                     <td class="py-2.5 pr-4">
                                         <div class="flex items-center gap-2.5">
                                             <div class="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 flex items-center justify-center text-xs font-medium shrink-0">
@@ -591,6 +601,19 @@
                                             {{ ucfirst(strtolower($status)) }}
                                         </span>
                                     </td>
+                                    <td class="py-2.5 text-left pr-3">
+                                        <button
+                                            x-show="hovered"
+                                            x-transition:enter="transition ease-out duration-100"
+                                            x-transition:enter-start="opacity-0 scale-90"
+                                            x-transition:enter-end="opacity-100 scale-100"
+                                            wire:click="removeStudent({{ $student->id }})"
+                                            class="w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 flex items-center justify-center transition-colors ml-auto"
+                                            aria-label="Remove {{ $student->name }} from module"
+                                        >
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                                        </button>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -602,7 +625,12 @@
             @if ($activeTab === 'lecturer')
                 <div class="grid grid-cols-3 gap-3">
                     @forelse ($this->moduleLecturers as $lecturer)
-                        <div class="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div
+                            x-data="{ hovered: false }"
+                            @mouseenter="hovered = true"
+                            @mouseleave="hovered = false"
+                            class="relative flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                        >
                             <div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 flex items-center justify-center font-medium text-sm shrink-0">
                                 {{ strtoupper(substr($lecturer->name, 0, 1)) }}
                             </div>
@@ -611,6 +639,17 @@
                                 <div class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $lecturer->email }}</div>
                                 <div class="text-xs text-gray-400 font-mono">{{ $lecturer->institutional_id }}</div>
                             </div>
+                            <button
+                                x-show="hovered"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 scale-90"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                wire:click="detachLecturer({{ $lecturer->id }})"
+                                class="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 flex items-center justify-center transition-colors"
+                                aria-label="Remove {{ $lecturer->name }} from module"
+                            >
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                            </button>
                         </div>
                     @empty
                         <div class="flex flex-col items-center justify-center py-8 gap-3 col-span-3 text-gray-400 dark:text-gray-500">

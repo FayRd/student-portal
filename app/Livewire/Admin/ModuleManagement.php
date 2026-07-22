@@ -12,6 +12,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\RateLimiter;
 
 class ModuleManagement extends Component
 {
@@ -612,12 +613,23 @@ class ModuleManagement extends Component
 
     public function uploadFile(): void
     {
+        $key = 'resource-upload:' . auth()->id();
+
+        if (RateLimiter::tooManyAttempts($key, 10)) {
+            $this->dispatch('toast',
+                message: 'Looks like you are uploading too quickly! Please try again in a minute.',
+                type: 'error',
+                duration: 4000
+            );
+            return;
+        }
+
+        RateLimiter::hit($key, 60);
+
         $this->validate([
             'fileName'     => 'required|string|max:255',
             'uploadedFile' => [
-                'required',
-                'file',
-                'max:102400',
+                'required', 'file', 'max:102400',
                 'mimes:pdf,doc,docx,ppt,pptx,txt,mp4,mp3,zip',
             ],
         ]);
@@ -642,6 +654,12 @@ class ModuleManagement extends Component
         $this->fileName          = '';
         $this->uploadedFile      = null;
         unset($this->resourceContents, $this->moduleClasses);
+
+        $this->dispatch('toast',
+            message: 'File uploaded successfully.',
+            type: 'success',
+            duration: 4000
+        );
     }
 
     private function getLinkedFolderId(): ?int
@@ -678,6 +696,41 @@ class ModuleManagement extends Component
                 PATHINFO_FILENAME
             );
         }
+    }
+
+    public function removeStudent(int $userId): void
+    {
+        $student = User::find($userId);
+
+        Enrollment::where('user_id', $userId)
+            ->where('module_id', $this->selectedModuleId)
+            ->update(['status' => 'DROPPED']);
+
+        $this->dispatch('toast',
+            message: "'{$student->name}' has been removed from the student list.",
+            type: 'info',
+            duration: 7000
+        );
+
+        unset($this->moduleStudents, $this->stats);
+    }
+
+    public function detachLecturer(int $userId): void
+    {
+        $lecturer = User::find($userId);
+
+        DB::table('module_user')
+            ->where('user_id', $userId)
+            ->where('module_id', $this->selectedModuleId)
+            ->delete();
+
+        $this->dispatch('toast',
+            message: "'{$lecturer->name}' has been removed from the lecturer list.",
+            type: 'info',
+            duration: 7000
+        );
+
+        unset($this->moduleLecturers, $this->selectedModule);
     }
 
     #[Computed]

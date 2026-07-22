@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +33,13 @@ class AppServiceProvider extends ServiceProvider
                 ->symbols()
                 ->uncompromised();
         });
+        RateLimiter::for('resource-download', fn ($request) =>
+            Limit::perMinute(10)->by($request->user()?->id)
+        );
+
+        RateLimiter::for('resource-upload', fn ($request) =>
+            Limit::perMinute(10)->by($request->user()?->id)
+        );
     }
 
     /**

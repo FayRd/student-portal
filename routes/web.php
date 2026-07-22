@@ -7,6 +7,7 @@ use App\Livewire\Modules\ModuleView;
 use App\Livewire\Auth\ForcePasswordChange;
 
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
+use App\Http\Controllers\ResourceDownloadController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -47,3 +48,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/users', UserManagement::class)->name('users');
         Route::get('/modules', ModuleManagement::class)->name('modules');
     });
+
+// Resources Download
+Route::middleware(['auth', 'verified', 'throttle:resource-download'])
+    ->get('/resources/{resource}/download', [ResourceDownloadController::class, 'download'])
+    ->name('resources.download');
