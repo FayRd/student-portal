@@ -11,10 +11,21 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 
 class ModuleManagement extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
+
+    // Resource browser state
+    public ?int $browsedFolderId = null;
+
+    // Resource creation modal
+    public bool   $showResourceModal = false;
+    public string $resourceStep      = 'choose'; // 'choose', 'folder', 'file'
+    public string $folderName        = '';
+    public string $fileName          = '';
+    public mixed  $uploadedFile      = null;
 
     // Filters
     public string $search     = '';
@@ -302,7 +313,8 @@ class ModuleManagement extends Component
 
     public function toggleClass(int $id): void
     {
-        $this->expandedClassId = ($this->expandedClassId === $id) ? null : $id;
+        $this->expandedClassId  = ($this->expandedClassId === $id) ? null : $id;
+        $this->browsedFolderId  = null;
     }
 
     public function sortStudents(string $column): void
@@ -552,6 +564,146 @@ class ModuleManagement extends Component
             'audio/mpeg'                                                                              => 'MP3',
             default                                                                                   => $mime,
         };
+    }
+
+    public function browseFolder(?int $folderId): void
+    {
+        $this->browsedFolderId = $folderId;
+    }
+
+    public function openResourceModal(): void
+    {
+        $this->showResourceModal = true;
+        $this->resourceStep      = 'choose';
+        $this->folderName        = '';
+        $this->fileName          = '';
+        $this->uploadedFile      = null;
+        $this->resetValidation();
+    }
+
+    public function closeResourceModal(): void
+    {
+        $this->showResourceModal = false;
+        $this->resourceStep      = 'choose';
+    }
+
+    public function chooseResourceType(string $type): void
+    {
+        $this->resourceStep = $type; // 'folder' or 'file'
+    }
+
+    public function createFolder(): void
+    {
+        $this->validate([
+            'folderName' => 'required|string|max:255',
+        ]);
+
+        \App\Models\ResourceFolder::create([
+            'module_id' => $this->selectedModuleId,
+            'parent_id' => $this->browsedFolderId ?? $this->getLinkedFolderId(),
+            'name'      => $this->folderName,
+            'order'     => 0,
+        ]);
+
+        $this->showResourceModal = false;
+        $this->folderName        = '';
+        unset($this->resourceContents, $this->moduleClasses);
+    }
+
+    public function uploadFile(): void
+    {
+        $this->validate([
+            'fileName'     => 'required|string|max:255',
+            'uploadedFile' => [
+                'required',
+                'file',
+                'max:102400',
+                'mimes:pdf,doc,docx,ppt,pptx,txt,mp4,mp3,zip',
+            ],
+        ]);
+
+        $originalName = $this->uploadedFile->getClientOriginalName();
+        $mimeType     = $this->uploadedFile->getMimeType();
+        $fileSize     = $this->uploadedFile->getSize();
+        $path         = $this->uploadedFile->store('module-resources', 'local');
+
+        \App\Models\ModuleResource::create([
+            'module_id'   => $this->selectedModuleId,
+            'folder_id'   => $this->browsedFolderId ?? $this->getLinkedFolderId(),
+            'uploaded_by' => auth()->id(),
+            'title'       => $this->fileName,
+            'file_path'   => $path,
+            'file_name'   => $originalName,
+            'file_size'   => $fileSize,
+            'mime_type'   => $mimeType,
+        ]);
+
+        $this->showResourceModal = false;
+        $this->fileName          = '';
+        $this->uploadedFile      = null;
+        unset($this->resourceContents, $this->moduleClasses);
+    }
+
+    private function getLinkedFolderId(): ?int
+    {
+        if (! $this->expandedClassId) {
+            return null;
+        }
+
+        return ClassSession::find($this->expandedClassId)?->resource_folder_id;
+    }
+
+    public function getFolderBreadcrumb(): array
+    {
+        if (! $this->browsedFolderId) {
+            return [];
+        }
+
+        $crumbs = [];
+        $folder = \App\Models\ResourceFolder::find($this->browsedFolderId);
+
+        while ($folder) {
+            array_unshift($crumbs, ['id' => $folder->id, 'name' => $folder->name]);
+            $folder = $folder->parent_id ? \App\Models\ResourceFolder::find($folder->parent_id) : null;
+        }
+
+        return $crumbs;
+    }
+
+    public function updatedUploadedFile(): void
+    {
+        if ($this->uploadedFile) {
+            $this->fileName = pathinfo(
+                $this->uploadedFile->getClientOriginalName(),
+                PATHINFO_FILENAME
+            );
+        }
+    }
+
+    #[Computed]
+    public function resourceContents(): array
+    {
+        $folderId = $this->browsedFolderId;
+
+        if ($folderId) {
+            $folder = \App\Models\ResourceFolder::with(['children', 'resources'])->find($folderId);
+            return [
+                'folders'   => $folder?->children ?? collect(),
+                'resources' => $folder?->resources ?? collect(),
+            ];
+        }
+
+        // Root of linked folder
+        $linkedFolderId = $this->getLinkedFolderId();
+        if (! $linkedFolderId) {
+            return ['folders' => collect(), 'resources' => collect()];
+        }
+
+        $folder = \App\Models\ResourceFolder::with(['children', 'resources'])->find($linkedFolderId);
+        return [
+            'folders'   => $folder?->children ?? collect(),
+            'resources' => $folder?->resources ?? collect(),
+        ];
     }
 
     #[Computed]

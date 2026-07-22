@@ -373,10 +373,10 @@
 
             {{-- Tab content --}}
             @if ($activeTab === 'classes')
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-5 gap-4">
 
                     {{-- Left: accordion list --}}
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-2 col-span-2">
                         @forelse ($this->moduleClasses as $session)
                             @php
                                 $location = $this->resolveLocation($session->location);
@@ -439,47 +439,91 @@
                         <div class="mt-2">{{ $this->moduleClasses->links() }}</div>
                     </div>
 
-                    {{-- Right: resource panel, updates when accordion opens --}}
-                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 min-h-32">
-                        @if ($expandedClassId && $this->moduleClasses->firstWhere('id', $expandedClassId)?->resourceFolder)
-                            @php $folder = $this->moduleClasses->firstWhere('id', $expandedClassId)->resourceFolder; @endphp
-                            <div class="border-b border-gray-200 dark:border-gray-700 pb-2.5 text-xs font-medium text-gray-400 uppercase tracking-wide">{{ $folder->name }}</div>
-                            @php $items = $folder->children->merge($folder->resources); @endphp
-                            @if ($items->isEmpty())
-                                <div class="flex flex-col items-center justify-center h-full w-full gap-3 text-gray-400 dark:text-gray-500">
-                                    <div class="text-xs">There are no resources.</div>
-                                    <button class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                    </button>
-                                </div>
-                            @else
-                                <div class="grid grid-cols-7 gap-2 mt-4">
-                                    @foreach ($folder->children as $child)
-                                        <div class="flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-center">
-                                            <svg class="w-12 h-12 text-yellow-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H2v16h20V6H12l-2-2z"/></svg>
-                                            <span class="text-xs text-gray-700 dark:text-gray-300 truncate w-full leading-tight">{{ $child->name }}</span>
-                                        </div>
-                                    @endforeach
-                                    @foreach ($folder->resources as $resource)
-                                        <div class="flex flex-col items-center gap-1 p-2 rounded-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-center h-22 w-22">
-                                            <svg class="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                            <span class="text-xs text-gray-700 dark:text-gray-300 truncate w-full leading-tight">{{ $resource->title }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @endif
-                        @elseif ($expandedClassId)
-                            <div class="flex flex-col items-center justify-center h-full gap-3 py-8 text-gray-400 dark:text-gray-500">
-                                <p class="text-xs">No resource folder linked to this session.</p>
-                                <button class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                </button>
-                            </div>
-                        @else
-                            <div class="flex flex-col items-center justify-center h-full gap-3 py-4 text-gray-400 dark:text-gray-500 min-h-50">
+                    {{-- Right: resource panel --}}
+                    <div class="col-span-3 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden min-h-32">
+                        @if (! $expandedClassId)
+                            <div class="flex flex-col items-center justify-center h-full gap-3 py-8 text-gray-400 dark:text-gray-500 min-h-50">
                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                                 <span class="text-xs">Open a class to view resources</span>
                             </div>
+                        @else
+                            @php
+                                $linkedFolderId = $this->getLinkedFolderId();
+                                $contents       = $this->resourceContents;
+                                $hasContent     = $contents['folders']->isNotEmpty() || $contents['resources']->isNotEmpty();
+                                $crumbs         = $this->getFolderBreadcrumb();
+                            @endphp
+
+                            {{-- Header: breadcrumb + no linked folder warning --}}
+                            <div class="px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 min-h-9">
+                                @if (! $linkedFolderId)
+                                    <p class="text-xs text-gray-400">No resource folder linked to this session.</p>
+                                @else
+                                    <div class="flex items-center gap-1 text-xs text-gray-400 flex-wrap">
+                                        <button
+                                            wire:click="browseFolder(null)"
+                                            class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors truncate max-w-32"
+                                        >
+                                            {{ \App\Models\ResourceFolder::find($linkedFolderId)?->name ?? 'Root' }}
+                                        </button>
+                                        @foreach ($crumbs as $crumb)
+                                            @if ($crumb['id'] == $linkedFolderId)
+                                                @continue
+                                            @endif
+                                            <span>/</span>
+                                            <button
+                                                wire:click="browseFolder({{ $crumb['id'] }})"
+                                                class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors truncate max-w-32"
+                                            >
+                                                {{ $crumb['name'] }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- Resource grid --}}
+                            @if ($linkedFolderId)
+                                <div class="p-3">
+                                    {{-- @if (! $hasContent)
+                                        <div class="flex flex-col items-center justify-center py-6 gap-3 text-gray-400 dark:text-gray-500">
+                                            <p class="text-xs">No resources here.</p>
+                                        </div>
+                                    @endif --}}
+
+                                    <div class="grid grid-cols-5 gap-2">
+                                        {{-- Folders --}}
+                                        @foreach ($contents['folders'] as $child)
+                                            <button
+                                                type="button"
+                                                wire:click="browseFolder({{ $child->id }})"
+                                                class="flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-center transition-colors"
+                                            >
+                                                <svg class="w-10 h-10 text-yellow-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H2v16h20V6H12l-2-2z"/></svg>
+                                                <span class="text-xs text-gray-700 dark:text-gray-300 truncate w-full leading-tight">{{ $child->name }}</span>
+                                            </button>
+                                        @endforeach
+
+                                        {{-- Files --}}
+                                        @foreach ($contents['resources'] as $resource)
+                                            <div class="flex flex-col items-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-center">
+                                                <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                <span class="text-xs text-gray-700 dark:text-gray-300 truncate w-full leading-tight">{{ $resource->title }}</span>
+                                            </div>
+                                        @endforeach
+
+                                        {{-- Add button -- always last in grid --}}
+                                        <button
+                                            type="button"
+                                            wire:click="openResourceModal"
+                                            class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 transition-colors text-center min-h-16"
+                                        >
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                            <span class="text-xs">Add</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -1036,6 +1080,126 @@
                     >
                         Assign {{ count($selectedLecturerIds) > 0 ? count($selectedLecturerIds) : '' }} {{ count($selectedLecturerIds) === 1 ? 'lecturer' : 'lecturers' }}
                     </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ── RESOURCE CREATION MODAL ── --}}
+    @if ($showResourceModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4 border border-gray-200 dark:border-gray-700">
+
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        @if ($resourceStep === 'choose') Add resource
+                        @elseif ($resourceStep === 'folder') New folder
+                        @else Upload file
+                        @endif
+                    </h3>
+                </div>
+
+                <div class="p-5">
+
+                    {{-- Step 1: Choose type --}}
+                    @if ($resourceStep === 'choose')
+                        <div class="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                wire:click="chooseResourceType('folder')"
+                                class="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                            >
+                                <svg class="w-10 h-10 text-yellow-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H2v16h20V6H12l-2-2z"/></svg>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">New folder</span>
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="chooseResourceType('file')"
+                                class="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                            >
+                                <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Upload file</span>
+                            </button>
+                        </div>
+                    @endif
+
+                    {{-- Step 2a: Folder name --}}
+                    @if ($resourceStep === 'folder')
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Folder name</label>
+                            <input
+                                wire:model="folderName"
+                                type="text"
+                                placeholder="e.g. Lecture Slides"
+                                autofocus
+                                class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                            @error('folderName') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    @endif
+
+                    {{-- Step 2b: File upload --}}
+                    @if ($resourceStep === 'file')
+                        <div class="flex flex-col gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Upload file</label>
+                                <input
+                                    wire:model="uploadedFile"
+                                    type="file"
+                                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.mp4,.mp3,.zip"
+                                    class="w-full text-xs text-gray-600 dark:text-gray-400 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-gray-100 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200"
+                                >
+                                @error('uploadedFile') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                                <p class="text-xs text-gray-400 mt-1">PDF, Word, PowerPoint, TXT, MP4, MP3, ZIP · Max 100MB</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Display name</label>
+                                <input
+                                    wire:model="fileName"
+                                    type="text"
+                                    placeholder="File display name"
+                                    class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                @error('fileName') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- Upload progress --}}
+                            <div wire:loading wire:target="uploadedFile" class="text-xs text-blue-500">
+                                Uploading…
+                            </div>
+                        </div>
+                    @endif
+
+                </div>
+
+                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                    <button
+                        wire:click="closeResourceModal"
+                        wire:confirm="Discard? Changes will be lost."
+                        class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+                    >
+                        @if ($resourceStep === 'choose') Cancel @else Discard @endif
+                    </button>
+
+                    @if ($resourceStep === 'folder')
+                        <button
+                            wire:click="createFolder"
+                            class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                        >
+                            Create folder
+                        </button>
+                    @elseif ($resourceStep === 'file')
+                        <button
+                            wire:click="uploadFile"
+                            class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                            wire:loading.attr="disabled"
+                            wire:target="uploadedFile,uploadFile"
+                        >
+                            <span wire:loading.remove wire:target="uploadFile">Upload file</span>
+                            <span wire:loading wire:target="uploadFile">Uploading…</span>
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
