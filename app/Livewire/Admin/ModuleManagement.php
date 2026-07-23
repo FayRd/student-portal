@@ -76,6 +76,10 @@ class ModuleManagement extends Component
     public string $submissionSort    = 'name';
     public string $submissionSortDir = 'asc';
 
+    // Assigment Details & Grading
+    public ?int  $detailAssignmentId  = null;
+    public ?int  $gradingSubmissionId = null;
+
     public function updatedSearch(): void       { $this->resetPage(); }
     public function updatedStatusFilter(): void { $this->resetPage(); }
 
@@ -731,6 +735,68 @@ class ModuleManagement extends Component
         );
 
         unset($this->moduleLecturers, $this->selectedModule);
+    }
+
+    public function showAssignmentDetail(int $id): void
+    {
+        $this->detailAssignmentId = ($this->detailAssignmentId === $id) ? null : $id;
+    }
+
+    public function closeAssignmentDetail(): void
+    {
+        $this->detailAssignmentId = null;
+    }
+
+    public function showGradePopup(int $submissionId): void
+    {
+        $this->gradingSubmissionId = $submissionId;
+    }
+
+    public function closeGradePopup(): void
+    {
+        $this->gradingSubmissionId = null;
+    }
+
+    public function confirmDeleteAssignment(int $id): void
+    {
+        $this->dispatch('confirm',
+            title: 'Delete assignment',
+            message: 'Are you sure you want to delete this assignment? All associated submissions and grades will be permanently deleted.',
+            action: 'deleteAssignment',
+            params: [$id],
+            dangerLabel: 'Delete assignment'
+        );
+    }
+
+    #[On('deleteAssignment')]
+    public function deleteAssignment(int $id): void
+    {
+        \App\Models\Assignment::find($id)?->delete();
+
+        if ($this->selectedAssignmentId === $id) {
+            $this->selectedAssignmentId = null;
+        }
+
+        $this->dispatch('toast', message: 'Assignment deleted.', type: 'info', duration: 4000);
+        unset($this->moduleAssignments, $this->moduleSubmissions, $this->selectedAssignment);
+    }
+
+    #[Computed]
+    public function detailAssignment(): ?\App\Models\Assignment
+    {
+        if (! $this->detailAssignmentId) {
+            return null;
+        }
+        return \App\Models\Assignment::with('creator')->find($this->detailAssignmentId);
+    }
+
+    #[Computed]
+    public function gradingSubmission()
+    {
+        if (! $this->gradingSubmissionId) {
+            return null;
+        }
+        return \App\Models\Submission::with(['grade.grader', 'student', 'assignment'])->find($this->gradingSubmissionId);
     }
 
     #[Computed]

@@ -8,6 +8,7 @@ use App\Livewire\Auth\ForcePasswordChange;
 
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\ResourceDownloadController;
+use App\Http\Controllers\SubmissionDownloadController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -53,3 +54,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 Route::middleware(['auth', 'verified', 'throttle:resource-download'])
     ->get('/resources/{resource}/download', [ResourceDownloadController::class, 'download'])
     ->name('resources.download');
+
+// Submissions Download
+Route::middleware(['auth', 'verified', 'throttle:resource-download'])
+    ->get('/submissions/{submission}/download', [SubmissionDownloadController::class, 'download'])
+    ->name('submissions.download');
