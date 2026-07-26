@@ -9,6 +9,7 @@ use App\Models\ClassSession;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -757,20 +758,11 @@ class ModuleManagement extends Component
         $this->gradingSubmissionId = null;
     }
 
-    public function confirmDeleteAssignment(int $id): void
-    {
-        $this->dispatch('confirm',
-            title: 'Delete assignment',
-            message: 'Are you sure you want to delete this assignment? All associated submissions and grades will be permanently deleted.',
-            action: 'deleteAssignment',
-            params: [$id],
-            dangerLabel: 'Delete assignment'
-        );
-    }
-
     #[On('deleteAssignment')]
     public function deleteAssignment(int $id): void
     {
+        logger('deleteAssignment received', ['id' => $id]);
+
         \App\Models\Assignment::find($id)?->delete();
 
         if ($this->selectedAssignmentId === $id) {
@@ -779,6 +771,17 @@ class ModuleManagement extends Component
 
         $this->dispatch('toast', message: 'Assignment deleted.', type: 'info', duration: 4000);
         unset($this->moduleAssignments, $this->moduleSubmissions, $this->selectedAssignment);
+    }
+
+    public function confirmDeleteAssignment(int $id): void
+    {
+        $this->dispatch('confirm',
+            title: 'Delete assignment',
+            message: 'Are you sure you want to delete this assignment? All associated submissions and grades will be permanently deleted.',
+            action: 'deleteAssignment',
+            params: [$id],
+            dangerLabel: 'Delete assignment',
+        );
     }
 
     #[Computed]

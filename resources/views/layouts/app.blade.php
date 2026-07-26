@@ -9,6 +9,6 @@
             });
         </script>
     @endif
-
+    <livewire:confirmation-modal />
     <x-toast />
 </x-layouts::app.sidebar>
