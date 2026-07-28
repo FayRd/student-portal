@@ -81,7 +81,34 @@ new #[Title('Profile settings')] class extends Component {
 
     <flux:heading class="sr-only">{{ __('Profile settings') }}</flux:heading>
 
-    <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
+    <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your profile information and avatar')">
+        {{-- Avatar Change Form --}}
+        <div class="my-6 p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/30">
+            <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1">{{ __('Avatar') }}</h3>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-4">{{ __('Upload a new profile image or avatar.') }}</p>
+            
+            <div class="flex items-center gap-4">
+                <flux:avatar
+                    :name="auth()->user()->name"
+                    :initials="auth()->user()->initials()"
+                    class="size-12"
+                />
+                
+                <div class="flex flex-col gap-2 flex-1 min-w-0">
+                    <input 
+                        type="file" 
+                        accept="image/*" 
+                        class="block w-full text-xs text-zinc-500 dark:text-zinc-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/30 dark:file:text-blue-300 hover:file:bg-blue-100 cursor-pointer"
+                    />
+                    <span class="text-xs text-zinc-400">JPG, PNG, GIF or WEBP up to 2MB</span>
+                </div>
+
+                <flux:button variant="filled" size="sm" type="button" onclick="alert('Avatar upload placeholder triggered.')">
+                    {{ __('Upload') }}
+                </flux:button>
+            </div>
+        </div>
+
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
             <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
 

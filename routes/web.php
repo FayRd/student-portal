@@ -21,7 +21,6 @@ Route::middleware('guest')->group(function () {
 // Authenticated — force password change before anything else
 Route::middleware(['auth'])->group(function () {
     Route::view('/dashboard', 'dashboard')->name('dashboard');
-    Route::get('/profile', fn () => view('dashboard'))->name('profile.edit');
     Route::get('/password/change', ForcePasswordChange::class)
         ->name('password.change');
 });
