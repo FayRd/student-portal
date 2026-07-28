@@ -1,15 +1,14 @@
 <?php
 
-use App\Livewire\Admin\UserManagement;
-use App\Livewire\Admin\ModuleManagement;
-use App\Livewire\Modules\EnrollmentView;
-use App\Livewire\Modules\ModuleView;
-use App\Livewire\Auth\ForcePasswordChange;
-
-use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\ResourceDownloadController;
 use App\Http\Controllers\SubmissionDownloadController;
+use App\Livewire\Admin\ModuleManagement;
+use App\Livewire\Admin\UserManagement;
+use App\Livewire\Auth\ForcePasswordChange;
+use App\Livewire\Modules\EnrollmentView;
+use App\Livewire\Modules\ModuleView;
 use Illuminate\Support\Facades\Route;
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 
 Route::view('/', 'welcome')->name('home');
 
@@ -59,3 +58,5 @@ Route::middleware(['auth', 'verified', 'throttle:resource-download'])
 Route::middleware(['auth', 'verified', 'throttle:resource-download'])
     ->get('/submissions/{submission}/download', [SubmissionDownloadController::class, 'download'])
     ->name('submissions.download');
+
+require __DIR__.'/settings.php';

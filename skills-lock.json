@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "livewire-4": {
+      "source": "freekmurze/dotfiles",
+      "sourceType": "github",
+      "skillPath": "config/claude/skills/livewire-4/SKILL.md",
+      "computedHash": "08966130147d0c1f2effb0e603704a175e42b36d193437a7c2fb9a2141bdcb78"
+    }
+  }
+}

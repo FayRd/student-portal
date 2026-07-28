@@ -1,8 +1,9 @@
 <div>
     @if ($show)
-        <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 dark:bg-black/70">
+        <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-y-auto overflow-x-auto">
+            <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" wire:click="cancel" @wheel.prevent @touchmove.prevent></div>
             <div
-                class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4 border border-gray-200 dark:border-gray-700"
+                class="relative z-10 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-auto my-auto border border-gray-200 dark:border-gray-700 flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overscroll-contain"
                 x-data="{
                     seconds: {{ $countdown }},
                     progress: 0,
@@ -22,17 +23,17 @@
                 }"
                 x-init="start()"
             >
-                <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $title }}</h3>
                 </div>
 
-                <div class="px-5 py-4">
+                <div class="px-5 py-4 overflow-y-auto overflow-x-auto flex-1">
                     <p class="text-sm text-gray-600 dark:text-gray-400">{{ $message }}</p>
                     <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">This action cannot be undone.</p>
                 </div>
 
                 {{-- Progress bar --}}
-                <div class="px-5 pb-2">
+                <div class="px-5 pb-2 shrink-0">
                     <div class="h-1 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                             class="h-full bg-red-400 dark:bg-red-600 rounded-full transition-none"
@@ -44,7 +45,7 @@
                     </p>
                 </div>
 
-                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
                     <button
                         wire:click="cancel"
                         class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"

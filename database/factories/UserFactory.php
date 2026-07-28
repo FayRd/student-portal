@@ -25,16 +25,16 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'              => fake()->name(),
-            'email'             => fake()->unique()->safeEmail(),
+            'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password'          => Hash::make('password'),
-            'remember_token'    => Str::random(10),
-            'institutional_id'  => null,
-            'avatar_path'       => null,
+            'password' => Hash::make('password'),
+            'remember_token' => Str::random(10),
+            'institutional_id' => null,
+            'avatar_path' => null,
         ];
     }
-    
+
     public function student(): static
     {
         return $this->state(fn () => [
@@ -48,6 +48,14 @@ class UserFactory extends Factory
             'institutional_id' => fake()->unique()->numerify('1#######'),
         ]);
     }
+
+    public function admin(): static
+    {
+        return $this->staff()->afterCreating(function (User $user) {
+            $user->assignRole('admin');
+        });
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

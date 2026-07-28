@@ -154,7 +154,7 @@ new class extends Component {
 
 <flux:modal
     name="two-factor-setup-modal"
-    class="max-w-md md:min-w-md"
+    class="w-full max-w-md"
     @close="closeModal"
 >
         <div class="space-y-6">
@@ -225,7 +225,7 @@ new class extends Component {
                 @enderror
 
                 <div class="flex justify-center">
-                    <div class="relative w-64 overflow-hidden border rounded-lg border-stone-200 dark:border-stone-700 aspect-square">
+                    <div class="relative w-full max-w-[16rem] overflow-hidden border rounded-lg border-stone-200 dark:border-stone-700 aspect-square">
                         @empty($qrCodeSvg)
                             <div class="absolute inset-0 flex items-center justify-center bg-white dark:bg-stone-700 animate-pulse">
                                 <flux:icon.loading/>

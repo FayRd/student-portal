@@ -10,10 +10,10 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->student()->create();
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'institutional_id' => $user->institutional_id,
         'password' => 'password',
     ]);
 
@@ -25,14 +25,14 @@ test('users can authenticate using the login screen', function () {
 });
 
 test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->student()->create();
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'institutional_id' => $user->institutional_id,
         'password' => 'wrong-password',
     ]);
 
-    $response->assertSessionHasErrorsIn('email');
+    $response->assertSessionHasErrorsIn('institutional_id');
 
     $this->assertGuest();
 });
@@ -45,10 +45,10 @@ test('users with two factor enabled are redirected to two factor challenge', fun
         'confirmPassword' => true,
     ]);
 
-    $user = User::factory()->withTwoFactor()->create();
+    $user = User::factory()->student()->withTwoFactor()->create();
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'institutional_id' => $user->institutional_id,
         'password' => 'password',
     ]);
 

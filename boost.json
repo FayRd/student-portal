@@ -17,6 +17,11 @@
         "livewire-development",
         "pest-testing",
         "tailwindcss-development",
-        "blaze-optimize"
+        "blaze-optimize",
+        "laravel-patterns",
+        "laravel-security",
+        "laravel-specialist",
+        "laravel-verification",
+        "php-pro"
     ]
 }

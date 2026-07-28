@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-0">
 
     {{-- ── SECTION 1: Stats strip ── --}}
-    <div class="grid grid-cols-5 gap-3 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         @foreach ([
             ['label' => 'Total modules',  'value' => $this->stats['total'],       'color' => ''],
             ['label' => 'Active',         'value' => $this->stats['active'],      'color' => 'text-green-600'],
@@ -21,25 +21,36 @@
 
         {{-- Toolbar --}}
         <div class="flex items-center gap-3 p-4 flex-wrap">
-            <div class="relative">
+            <div class="relative w-full sm:w-64">
                 <input
                     wire:model.live.debounce.300ms="search"
                     type="text"
-                    placeholder="Search name or code…"
-                    class="pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Search code or name…"
+                    class="pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                <svg class="absolute left-2.5 top-2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+                <svg class="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
             </div>
 
             <select
                 wire:model.live="statusFilter"
-                class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-full sm:w-auto"
                 aria-label="Filter by status"
             >
                 <option value="">All statuses</option>
-                <option value="ACTIVE">Active</option>
-                <option value="UPCOMING">Upcoming</option>
-                <option value="ARCHIVED">Archived</option>
+                <option value="active">Active</option>
+                <option value="archived">Archived</option>
+                <option value="draft">Draft</option>
+            </select>
+
+            <select
+                wire:model.live="semesterFilter"
+                class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-full sm:w-auto"
+                aria-label="Filter by semester"
+            >
+                <option value="">All semesters</option>
+                <option value="Semester 1">Semester 1</option>
+                <option value="Semester 2">Semester 2</option>
+                <option value="Summer">Summer</option>
             </select>
 
             <button
@@ -148,7 +159,7 @@
                     {{ $mode === 'create' ? 'Create new module' : 'Edit module' }}
                 </h3>
 
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Module code</label>
                         <input wire:model="formCode" type="text" placeholder="e.g. CS101" class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase">
@@ -342,6 +353,7 @@
                         ['key' => 'assignments', 'label' => 'Assignments (' . $this->moduleAssignments->total() . ')'],
                     ] as $tab)
                         <button
+                            wire:key="tab-nav-{{ $tab['key'] }}"
                             wire:click="setTab('{{ $tab['key'] }}')"
                             class="px-4 py-2 text-xs font-medium border-b-2 transition-colors {{ $activeTab === $tab['key'] ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400' }}"
                         >
@@ -352,17 +364,17 @@
 
                 {{-- Tab action buttons --}}
                 @if ($activeTab === 'classes')
-                    <button wire:click="openClassModal" class="mb-1 flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <button wire:key="action-btn-classes" wire:click="openClassModal" class="mb-1 flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Add class
                     </button>
                 @elseif ($activeTab === 'students')
-                    <button wire:click="openStudentModal" class="mb-1 flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <button wire:key="action-btn-students" wire:click="openStudentModal" class="mb-1 flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Enroll students
                     </button>
                 @elseif ($activeTab === 'lecturer')
-                    <button wire:click="openLecturerModal" class="mb-1 flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <button wire:key="action-btn-lecturer" wire:click="openLecturerModal" class="mb-1 flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Assign lecturer
                     </button>
@@ -373,10 +385,10 @@
 
             {{-- Tab content --}}
             @if ($activeTab === 'classes')
-                <div class="grid grid-cols-5 gap-4">
+                <div wire:key="tab-content-classes" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
                     {{-- Left: accordion list --}}
-                    <div class="flex flex-col gap-2 col-span-2">
+                    <div class="lg:col-span-2 col-span-1 space-y-4">
                         @forelse ($this->moduleClasses as $session)
                             @php
                                 $location = $this->resolveLocation($session->location);
@@ -440,7 +452,7 @@
                     </div>
 
                     {{-- Right: resource panel --}}
-                    <div class="col-span-3 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden min-h-32">
+                    <div class="lg:col-span-3 col-span-1 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden min-h-32">
                         @if (! $expandedClassId)
                             <div class="flex flex-col items-center justify-center h-full gap-3 py-8 text-gray-400 dark:text-gray-500 min-h-50">
                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
@@ -485,13 +497,7 @@
                             {{-- Resource grid --}}
                             @if ($linkedFolderId)
                                 <div class="p-3">
-                                    {{-- @if (! $hasContent)
-                                        <div class="flex flex-col items-center justify-center py-6 gap-3 text-gray-400 dark:text-gray-500">
-                                            <p class="text-xs">No resources here.</p>
-                                        </div>
-                                    @endif --}}
-
-                                    <div class="grid grid-cols-5 gap-2">
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                                         {{-- Folders --}}
                                         @foreach ($contents['folders'] as $child)
                                             <button
@@ -534,6 +540,7 @@
             @endif
 
             @if ($activeTab === 'students')
+                <div wire:key="tab-content-students">
                 @if ($this->moduleStudents->isEmpty())
                     <div class="flex flex-col items-center justify-center py-8 gap-3 text-gray-400 dark:text-gray-500">
                         <p class="text-xs">No students enrolled.</p>
@@ -620,62 +627,65 @@
                     </table>
                     <div class="mt-2">{{ $this->moduleStudents->links() }}</div>
                 @endif
+            </div>
             @endif
 
             @if ($activeTab === 'lecturer')
-                <div class="grid grid-cols-3 gap-3">
-                    @forelse ($this->moduleLecturers as $lecturer)
-                        <div
-                            x-data="{ hovered: false }"
-                            @mouseenter="hovered = true"
-                            @mouseleave="hovered = false"
-                            class="relative flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                        >
-                            <div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 flex items-center justify-center font-medium text-sm shrink-0">
-                                {{ strtoupper(substr($lecturer->name, 0, 1)) }}
-                            </div>
-                            <div class="min-w-0">
-                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $lecturer->name }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $lecturer->email }}</div>
-                                <div class="text-xs text-gray-400 font-mono">{{ $lecturer->institutional_id }}</div>
-                            </div>
-                            <button
-                                x-show="hovered"
-                                x-transition:enter="transition ease-out duration-100"
-                                x-transition:enter-start="opacity-0 scale-90"
-                                x-transition:enter-end="opacity-100 scale-100"
-                                wire:click="detachLecturer({{ $lecturer->id }})"
-                                class="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 flex items-center justify-center transition-colors"
-                                aria-label="Remove {{ $lecturer->name }} from module"
+                <div wire:key="tab-content-lecturer">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        @forelse ($this->moduleLecturers as $lecturer)
+                            <div
+                                x-data="{ hovered: false }"
+                                @mouseenter="hovered = true"
+                                @mouseleave="hovered = false"
+                                class="relative flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                             >
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
-                            </button>
-                        </div>
-                    @empty
-                        <div class="flex flex-col items-center justify-center py-8 gap-3 col-span-3 text-gray-400 dark:text-gray-500">
-                            <p class="text-xs">No lecturers assigned.</p>
-                            <button wire:click="openLecturerModal" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            </button>
-                        </div>
-                    @endforelse
+                                <div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 flex items-center justify-center font-medium text-sm shrink-0">
+                                    {{ strtoupper(substr($lecturer->name, 0, 1)) }}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $lecturer->name }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $lecturer->email }}</div>
+                                    <div class="text-xs text-gray-400 font-mono">{{ $lecturer->institutional_id }}</div>
+                                </div>
+                                <button
+                                    x-show="hovered"
+                                    x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="opacity-0 scale-90"
+                                    x-transition:enter-end="opacity-100 scale-100"
+                                    wire:click="detachLecturer({{ $lecturer->id }})"
+                                    class="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 flex items-center justify-center transition-colors"
+                                    aria-label="Remove {{ $lecturer->name }} from module"
+                                >
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                                </button>
+                            </div>
+                        @empty
+                            <div class="flex flex-col items-center justify-center py-8 gap-3 col-span-3 text-gray-400 dark:text-gray-500">
+                                <p class="text-xs">No lecturers assigned.</p>
+                                <button wire:click="openLecturerModal" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                </button>
+                            </div>
+                        @endforelse
+                    </div>
+                    @if ($this->moduleLecturers->hasPages())
+                        <div class="mt-2">{{ $this->moduleLecturers->links() }}</div>
+                    @endif
                 </div>
-                @if ($this->moduleLecturers->hasPages())
-                    <div class="mt-2">{{ $this->moduleLecturers->links() }}</div>
-                @endif
             @endif
 
             @if ($activeTab === 'assignments')
-                <div class="grid grid-cols-4 gap-4">
+                <div wire:key="tab-content-assignments" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
                     {{-- Left: assignment icon grid --}}
-                    <div>
+                    <div class="lg:col-span-2 col-span-1 space-y-4">
                         @if ($this->moduleAssignments->isEmpty())
                             <div class="flex flex-col items-center justify-center py-8 gap-3 text-gray-400 dark:text-gray-500">
                                 <p class="text-xs">No assignments created.</p>
                             </div>
                         @else
-                            <div class="grid grid-cols-3 gap-2 mb-2">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
                                 @foreach ($this->moduleAssignments as $assignment)
                                     @php
                                         $now        = now();
@@ -771,7 +781,7 @@
                     </div>
 
                     {{-- Right: submissions table --}}
-                    <div class="col-span-3 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    <div class="lg:col-span-3 col-span-1 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden min-h-32">
                         @if (! $this->selectedAssignment)
                             <div class="flex flex-col items-center justify-center h-full py-12 gap-2 text-gray-300 dark:text-gray-600">
                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -929,20 +939,21 @@
     </div>
     {{-- ── CLASS CREATION MODAL ── --}}
     @if ($showClassModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto overflow-x-auto">
+            <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" wire:click="closeClassModal" @wheel.prevent @touchmove.prevent></div>
+            <div class="relative z-10 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-auto my-auto border border-gray-200 dark:border-gray-700 flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overscroll-contain">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Add class session</h3>
                 </div>
 
-                <div class="p-5 flex flex-col gap-4">
+                <div class="p-5 flex flex-col gap-4 overflow-y-auto overflow-x-auto flex-1">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Session title</label>
                         <input wire:model="classTitle" type="text" placeholder="e.g. Week 1 — Introduction" class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         @error('classTitle') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Starts at</label>
                             <input wire:model="classStartsAt" type="datetime-local" class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -955,22 +966,26 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Type</label>
-                        <select wire:model="classType" class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="PHYSICAL">Physical</option>
-                            <option value="VIRTUAL">Virtual</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Location</label>
-                        <input wire:model="classLocation" type="text" placeholder="Room 101 or https://zoom.us/j/..." class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @error('classLocation') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Room / location</label>
+                            <input wire:model="classFormRoom" type="text" placeholder="e.g. Lab B, Hall 1" class="w-full text-xs border border-gray-300 dark:border-gray-600 rounded-lg px-2.5 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                            @error('classFormRoom') <p class="text-[10px] text-red-500 mt-0.5">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Type</label>
+                            <select wire:model="classFormType" class="w-full text-xs border border-gray-300 dark:border-gray-600 rounded-lg px-2.5 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                <option value="lecture">Lecture</option>
+                                <option value="tutorial">Tutorial</option>
+                                <option value="lab">Lab</option>
+                                <option value="seminar">Seminar</option>
+                                <option value="workshop">Workshop</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
                     <button
                         wire:click="closeClassModal"
                         wire:confirm="Discard this class? All changes will be lost."
@@ -991,13 +1006,14 @@
 
     {{-- ── STUDENT ENROLMENT MODAL ── --}}
     @if ($showStudentModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl mx-4 border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto overflow-x-auto">
+            <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" wire:click="closeStudentModal" @wheel.prevent @touchmove.prevent></div>
+            <div class="relative z-10 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl mx-auto my-auto border border-gray-200 dark:border-gray-700 flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overscroll-contain">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Enrol students</h3>
                 </div>
 
-                <div class="p-5">
+                <div class="p-5 overflow-y-auto overflow-x-auto flex-1">
                     <div class="relative mb-3">
                         <input
                             wire:model.live.debounce.300ms="modalSearch"
@@ -1071,7 +1087,7 @@
                     @endif
                 </div>
 
-                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
                     <button
                         wire:click="closeStudentModal"
                         wire:confirm="Discard selection? No students will be enrolled."
@@ -1093,13 +1109,14 @@
 
     {{-- ── LECTURER ASSIGNMENT MODAL ── --}}
     @if ($showLecturerModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl mx-4 border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto overflow-x-auto">
+            <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" wire:click="closeLecturerModal" @wheel.prevent @touchmove.prevent></div>
+            <div class="relative z-10 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl mx-auto my-auto border border-gray-200 dark:border-gray-700 flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overscroll-contain">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Assign lecturers</h3>
                 </div>
 
-                <div class="p-5">
+                <div class="p-5 overflow-y-auto overflow-x-auto flex-1">
                     <div class="relative mb-3">
                         <input
                             wire:model.live.debounce.300ms="modalSearch"
@@ -1172,7 +1189,7 @@
                     @endif
                 </div>
 
-                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
                     <button
                         wire:click="closeLecturerModal"
                         wire:confirm="Discard selection? No lecturers will be assigned."
@@ -1194,10 +1211,11 @@
 
     {{-- ── RESOURCE CREATION MODAL ── --}}
     @if ($showResourceModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4 border border-gray-200 dark:border-gray-700">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto overflow-x-auto">
+            <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" wire:click="closeResourceModal" @wheel.prevent @touchmove.prevent></div>
+            <div class="relative z-10 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-auto my-auto border border-gray-200 dark:border-gray-700 flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overscroll-contain">
 
-                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                         @if ($resourceStep === 'choose') Add resource
                         @elseif ($resourceStep === 'folder') New folder
@@ -1206,11 +1224,11 @@
                     </h3>
                 </div>
 
-                <div class="p-5">
+                <div class="p-5 overflow-y-auto overflow-x-auto flex-1">
 
                     {{-- Step 1: Choose type --}}
                     @if ($resourceStep === 'choose')
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <button
                                 type="button"
                                 wire:click="chooseResourceType('folder')"
@@ -1280,7 +1298,7 @@
 
                 </div>
 
-                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
                     <button
                         wire:click="closeResourceModal"
                         wire:confirm="Discard? Changes will be lost."
@@ -1315,15 +1333,16 @@
     {{-- ── ASSIGNMENT DETAILS MODAL ── --}}
     @if ($this->detailAssignment)
         @php $a = $this->detailAssignment; @endphp
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto overflow-x-auto">
+            <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" wire:click="closeAssignmentDetail" @wheel.prevent @touchmove.prevent></div>
+            <div class="relative z-10 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-auto my-auto border border-gray-200 dark:border-gray-700 flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overscroll-contain">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Assignment details</h3>
                     <button wire:click="closeAssignmentDetail" class="text-gray-400 hover:text-gray-600 text-xs">✕</button>
                 </div>
 
-                <div class="p-5 flex flex-col gap-3">
-                    <div class="grid grid-cols-2 gap-3">
+                <div class="p-5 flex flex-col gap-3 overflow-y-auto overflow-x-auto flex-1">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         @foreach ([
                             ['Title',          $a->title],
                             ['Type',           ucfirst(strtolower($a->type))],
@@ -1347,7 +1366,7 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end px-5 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
                     <button wire:click="closeAssignmentDetail" class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors">
                         Close
                     </button>
@@ -1362,9 +1381,10 @@
             $sub   = $this->gradingSubmission;
             $grade = $sub->grade;
         @endphp
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto overflow-x-auto">
+            <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" wire:click="closeGradePopup" @wheel.prevent @touchmove.prevent></div>
+            <div class="relative z-10 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-auto my-auto border border-gray-200 dark:border-gray-700 flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)] overscroll-contain">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
                     <div>
                         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Submission</h3>
                         <p class="text-xs text-gray-500 mt-0.5">{{ $sub->student?->name }} · {{ $sub->assignment?->title }}</p>
@@ -1372,7 +1392,7 @@
                     <button wire:click="closeGradePopup" class="text-gray-400 hover:text-gray-600 text-xs">✕</button>
                 </div>
 
-                <div class="p-5 flex flex-col gap-4">
+                <div class="p-5 flex flex-col gap-4 overflow-y-auto overflow-x-auto flex-1">
                     {{-- Submission info --}}
                     <div>
                         <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Submission</p>
@@ -1428,7 +1448,7 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
                     @if ($sub->file_name)
                         <a
                             href="{{ route('submissions.download', $sub->id) }}"

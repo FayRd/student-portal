@@ -2,96 +2,137 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\Module;
-use App\Models\Enrollment;
-use App\Models\User;
+use App\Models\Assignment;
 use App\Models\ClassSession;
+use App\Models\Enrollment;
+use App\Models\Module;
+use App\Models\ModuleResource;
+use App\Models\ResourceFolder;
+use App\Models\Submission;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
-use Livewire\WithPagination;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\RateLimiter;
+use Livewire\WithPagination;
 
 class ModuleManagement extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     // Resource browser state
     public ?int $browsedFolderId = null;
 
     // Resource creation modal
-    public bool   $showResourceModal = false;
-    public string $resourceStep      = 'choose'; // 'choose', 'folder', 'file'
-    public string $folderName        = '';
-    public string $fileName          = '';
-    public mixed  $uploadedFile      = null;
+    public bool $showResourceModal = false;
+
+    public string $resourceStep = 'choose'; // 'choose', 'folder', 'file'
+
+    public string $folderName = '';
+
+    public string $fileName = '';
+
+    public mixed $uploadedFile = null;
 
     // Filters
-    public string $search     = '';
+    public string $search = '';
+
     public string $statusFilter = '';
-    public string $sortBy     = 'created_at';
-    public string $sortDir    = 'desc';
+
+    public string $sortBy = 'created_at';
+
+    public string $sortDir = 'desc';
 
     // State
-    public ?int  $selectedModuleId = null;
-    public string $mode            = 'view';
-    public string $activeTab       = 'classes';
+    public ?int $selectedModuleId = null;
+
+    public string $mode = 'view';
+
+    public string $activeTab = 'classes';
 
     // Form fields
-    public string $formCode         = '';
-    public string $formName         = '';
-    public string $formDescription  = '';
-    public int    $formCredits      = 3;
+    public string $formCode = '';
+
+    public string $formName = '';
+
+    public string $formDescription = '';
+
+    public int $formCredits = 3;
+
     public string $formAcademicYear = '2025/2026';
-    public int    $formSemester     = 1;
-    public string $formStatus       = 'UPCOMING';
+
+    public int $formSemester = 1;
+
+    public string $formStatus = 'UPCOMING';
+
     public array $formLecturerIds = [];
 
     // Tab sorting
-    public ?int  $expandedClassId = null;
-    public string $studentSort    = 'name';
+    public ?int $expandedClassId = null;
+
+    public string $studentSort = 'name';
+
     public string $studentSortDir = 'asc';
 
     // Modal visibility
-    public bool $showClassModal    = false;
-    public bool $showStudentModal  = false;
+    public bool $showClassModal = false;
+
+    public bool $showStudentModal = false;
+
     public bool $showLecturerModal = false;
 
     // Class modal fields
-    public string  $classTitle     = '';
-    public string  $classLocation  = '';
-    public string  $classType      = 'PHYSICAL';
-    public string  $classStartsAt  = '';
-    public string  $classEndsAt    = '';
+    public string $classTitle = '';
+
+    public string $classLocation = '';
+
+    public string $classType = 'PHYSICAL';
+
+    public string $classStartsAt = '';
+
+    public string $classEndsAt = '';
 
     // Student/Lecturer modal fields
-    public string $modalSearch          = '';
-    public array  $selectedStudentIds   = [];
-    public array  $selectedLecturerIds  = [];
+    public string $modalSearch = '';
+
+    public array $selectedStudentIds = [];
+
+    public array $selectedLecturerIds = [];
 
     // Assignments and Submissions tabs
     public ?int $selectedAssignmentId = null;
-    public string $submissionSort    = 'name';
+
+    public string $submissionSort = 'name';
+
     public string $submissionSortDir = 'asc';
 
     // Assigment Details & Grading
-    public ?int  $detailAssignmentId  = null;
-    public ?int  $gradingSubmissionId = null;
+    public ?int $detailAssignmentId = null;
 
-    public function updatedSearch(): void       { $this->resetPage(); }
-    public function updatedStatusFilter(): void { $this->resetPage(); }
+    public ?int $gradingSubmissionId = null;
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
 
     #[Computed]
     public function stats(): array
     {
         return [
-            'total'       => Module::count(),
-            'active'      => Module::where('status', 'ACTIVE')->count(),
-            'upcoming'    => Module::where('status', 'UPCOMING')->count(),
-            'archived'    => Module::where('status', 'ARCHIVED')->count(),
+            'total' => Module::count(),
+            'active' => Module::where('status', 'ACTIVE')->count(),
+            'upcoming' => Module::where('status', 'UPCOMING')->count(),
+            'archived' => Module::where('status', 'ARCHIVED')->count(),
             'enrollments' => Enrollment::where('status', 'ACTIVE')->count(),
         ];
     }
@@ -102,7 +143,7 @@ class ModuleManagement extends Component
         return Module::with(['creator', 'editors'])
             ->when($this->search, fn ($q) => $q->where(function ($q) {
                 $q->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('code', 'like', "%{$this->search}%");
+                    ->orWhere('code', 'like', "%{$this->search}%");
             }))
             ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
             ->orderBy($this->sortBy, $this->sortDir)
@@ -131,7 +172,7 @@ class ModuleManagement extends Component
         if ($this->sortBy === $column) {
             $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
         } else {
-            $this->sortBy  = $column;
+            $this->sortBy = $column;
             $this->sortDir = 'asc';
         }
 
@@ -141,16 +182,17 @@ class ModuleManagement extends Component
     public function selectModule(int $id): void
     {
         $this->selectedModuleId = ($this->selectedModuleId === $id) ? null : $id;
-        $this->mode             = 'view';
-        $this->activeTab        = 'classes';
+        $this->mode = 'view';
+        $this->activeTab = 'classes';
         $this->selectedAssignmentId = null;
-        $this->expandedClassId  = null;
+        $this->expandedClassId = null;
         unset($this->selectedModule);
     }
 
     public function setTab(string $tab): void
     {
-        $this->activeTab       = $tab;
+        $this->closeAllModals();
+        $this->activeTab = $tab;
         $this->expandedClassId = null;
         $this->selectedAssignmentId = null;
         $this->resetPage('assignmentsPage');
@@ -163,7 +205,7 @@ class ModuleManagement extends Component
     public function showCreateForm(): void
     {
         $this->selectedModuleId = null;
-        $this->mode             = 'create';
+        $this->mode = 'create';
         $this->resetFormFields();
     }
 
@@ -189,50 +231,50 @@ class ModuleManagement extends Component
             return;
         }
 
-        $this->mode              = 'edit';
-        $this->formCode          = $this->selectedModule->code;
-        $this->formName          = $this->selectedModule->name;
-        $this->formDescription   = $this->selectedModule->description;
-        $this->formCredits       = $this->selectedModule->credits;
-        $this->formAcademicYear  = $this->selectedModule->academic_year;
-        $this->formSemester      = $this->selectedModule->semester;
-        $this->formStatus        = $this->selectedModule->status;
-        $this->formLecturerIds   = $this->selectedModule->editors->pluck('id')->toArray();
+        $this->mode = 'edit';
+        $this->formCode = $this->selectedModule->code;
+        $this->formName = $this->selectedModule->name;
+        $this->formDescription = $this->selectedModule->description;
+        $this->formCredits = $this->selectedModule->credits;
+        $this->formAcademicYear = $this->selectedModule->academic_year;
+        $this->formSemester = $this->selectedModule->semester;
+        $this->formStatus = $this->selectedModule->status;
+        $this->formLecturerIds = $this->selectedModule->editors->pluck('id')->toArray();
     }
 
     public function createModule(): void
     {
         $this->validate([
-            'formCode'          => 'required|string|max:20|unique:modules,code',
-            'formName'          => 'required|string|max:255',
-            'formDescription'   => 'required|string',
-            'formCredits'       => 'required|integer|min:1|max:12',
-            'formAcademicYear'  => 'required|string',
-            'formSemester'      => 'required|integer|in:1,2',
-            'formStatus'        => 'required|in:UPCOMING,ACTIVE,ARCHIVED',
-            'formLecturerIds'   => 'required|array|min:1',
+            'formCode' => 'required|string|max:20|unique:modules,code',
+            'formName' => 'required|string|max:255',
+            'formDescription' => 'required|string',
+            'formCredits' => 'required|integer|min:1|max:12',
+            'formAcademicYear' => 'required|string',
+            'formSemester' => 'required|integer|in:1,2',
+            'formStatus' => 'required|in:UPCOMING,ACTIVE,ARCHIVED',
+            'formLecturerIds' => 'required|array|min:1',
             'formLecturerIds.*' => 'exists:users,id',
         ]);
 
         $module = Module::create([
-            'code'          => strtoupper($this->formCode),
-            'name'          => $this->formName,
-            'description'   => $this->formDescription,
-            'credits'       => $this->formCredits,
+            'code' => strtoupper($this->formCode),
+            'name' => $this->formName,
+            'description' => $this->formDescription,
+            'credits' => $this->formCredits,
             'academic_year' => $this->formAcademicYear,
-            'semester'      => $this->formSemester,
-            'status'        => $this->formStatus,
-            'created_by'    => auth()->id(),
+            'semester' => $this->formSemester,
+            'status' => $this->formStatus,
+            'created_by' => auth()->id(),
         ]);
 
         $module->editors()->sync(
             collect($this->formLecturerIds)->mapWithKeys(fn ($id) => [
-                $id => ['role' => 'editor', 'created_at' => now()]
+                $id => ['role' => 'editor', 'created_at' => now()],
             ])->toArray()
         );
 
         $this->selectedModuleId = $module->id;
-        $this->mode             = 'view';
+        $this->mode = 'view';
         $this->resetFormFields();
         unset($this->stats, $this->modules, $this->selectedModule);
     }
@@ -240,31 +282,31 @@ class ModuleManagement extends Component
     public function updateModule(): void
     {
         $this->validate([
-            'formCode'         => ['required', 'string', 'max:20', Rule::unique('modules', 'code')->ignore($this->selectedModuleId)],
-            'formName'         => 'required|string|max:255',
-            'formDescription'  => 'required|string',
-            'formCredits'      => 'required|integer|min:1|max:12',
+            'formCode' => ['required', 'string', 'max:20', Rule::unique('modules', 'code')->ignore($this->selectedModuleId)],
+            'formName' => 'required|string|max:255',
+            'formDescription' => 'required|string',
+            'formCredits' => 'required|integer|min:1|max:12',
             'formAcademicYear' => 'required|string',
-            'formSemester'     => 'required|integer|in:1,2',
-            'formStatus'       => 'required|in:UPCOMING,ACTIVE,ARCHIVED',
-            'formLecturerIds'   => 'required|array|min:1',
+            'formSemester' => 'required|integer|in:1,2',
+            'formStatus' => 'required|in:UPCOMING,ACTIVE,ARCHIVED',
+            'formLecturerIds' => 'required|array|min:1',
             'formLecturerIds.*' => 'exists:users,id',
         ]);
 
         $module = Module::find($this->selectedModuleId);
         $module->update([
-            'code'          => strtoupper($this->formCode),
-            'name'          => $this->formName,
-            'description'   => $this->formDescription,
-            'credits'       => $this->formCredits,
+            'code' => strtoupper($this->formCode),
+            'name' => $this->formName,
+            'description' => $this->formDescription,
+            'credits' => $this->formCredits,
             'academic_year' => $this->formAcademicYear,
-            'semester'      => $this->formSemester,
-            'status'        => $this->formStatus,
+            'semester' => $this->formSemester,
+            'status' => $this->formStatus,
         ]);
 
         $module->editors()->sync(
             collect($this->formLecturerIds)->mapWithKeys(fn ($id) => [
-                $id => ['role' => 'editor', 'created_at' => now()]
+                $id => ['role' => 'editor', 'created_at' => now()],
             ])->toArray()
         );
 
@@ -277,7 +319,7 @@ class ModuleManagement extends Component
     {
         Module::find($id)->delete();
         $this->selectedModuleId = null;
-        $this->mode             = 'view';
+        $this->mode = 'view';
         unset($this->stats, $this->modules, $this->selectedModule);
     }
 
@@ -289,14 +331,14 @@ class ModuleManagement extends Component
 
     private function resetFormFields(): void
     {
-        $this->formCode         = '';
-        $this->formName         = '';
-        $this->formDescription  = '';
-        $this->formCredits      = 3;
+        $this->formCode = '';
+        $this->formName = '';
+        $this->formDescription = '';
+        $this->formCredits = 3;
         $this->formAcademicYear = '2025/2026';
-        $this->formSemester     = 1;
-        $this->formStatus       = 'UPCOMING';
-        $this->formLecturerIds   = [];
+        $this->formSemester = 1;
+        $this->formStatus = 'UPCOMING';
+        $this->formLecturerIds = [];
         $this->resetValidation();
     }
 
@@ -307,11 +349,11 @@ class ModuleManagement extends Component
         }
 
         $label = match (true) {
-            str_contains($location, 'zoom.us')             => 'Zoom',
-            str_contains($location, 'teams.microsoft')     => 'Teams',
-            str_contains($location, 'meet.google')         => 'Google Meet',
-            str_contains($location, 'webex.com')           => 'Webex',
-            default                                        => 'Link',
+            str_contains($location, 'zoom.us') => 'Zoom',
+            str_contains($location, 'teams.microsoft') => 'Teams',
+            str_contains($location, 'meet.google') => 'Google Meet',
+            str_contains($location, 'webex.com') => 'Webex',
+            default => 'Link',
         };
 
         return ['type' => 'link', 'value' => $location, 'label' => $label];
@@ -319,8 +361,8 @@ class ModuleManagement extends Component
 
     public function toggleClass(int $id): void
     {
-        $this->expandedClassId  = ($this->expandedClassId === $id) ? null : $id;
-        $this->browsedFolderId  = null;
+        $this->expandedClassId = ($this->expandedClassId === $id) ? null : $id;
+        $this->browsedFolderId = null;
     }
 
     public function sortStudents(string $column): void
@@ -328,7 +370,7 @@ class ModuleManagement extends Component
         if ($this->studentSort === $column) {
             $this->studentSortDir = $this->studentSortDir === 'asc' ? 'desc' : 'asc';
         } else {
-            $this->studentSort    = $column;
+            $this->studentSort = $column;
             $this->studentSortDir = 'asc';
         }
 
@@ -345,7 +387,7 @@ class ModuleManagement extends Component
             ->whereNotIn('id', $enrolled)
             ->when($this->modalSearch, fn ($q) => $q->where(function ($q) {
                 $q->where('name', 'like', "%{$this->modalSearch}%")
-                ->orWhere('institutional_id', 'like', "%{$this->modalSearch}%");
+                    ->orWhere('institutional_id', 'like', "%{$this->modalSearch}%");
             }))
             ->orderBy('name')
             ->paginate(8, pageName: 'availableStudentsPage');
@@ -362,7 +404,7 @@ class ModuleManagement extends Component
             ->whereNotIn('id', $assigned)
             ->when($this->modalSearch, fn ($q) => $q->where(function ($q) {
                 $q->where('name', 'like', "%{$this->modalSearch}%")
-                ->orWhere('institutional_id', 'like', "%{$this->modalSearch}%");
+                    ->orWhere('institutional_id', 'like', "%{$this->modalSearch}%");
             }))
             ->orderBy('name')
             ->paginate(8, pageName: 'availableLecturersPage');
@@ -374,6 +416,7 @@ class ModuleManagement extends Component
         if (empty($this->selectedStudentIds)) {
             return collect();
         }
+
         return User::whereIn('id', $this->selectedStudentIds)->get(['id', 'name']);
     }
 
@@ -383,6 +426,7 @@ class ModuleManagement extends Component
         if (empty($this->selectedLecturerIds)) {
             return collect();
         }
+
         return User::whereIn('id', $this->selectedLecturerIds)->get(['id', 'name']);
     }
 
@@ -393,14 +437,25 @@ class ModuleManagement extends Component
         unset($this->availableStudents, $this->availableLecturers);
     }
 
+    public function closeAllModals(): void
+    {
+        $this->showClassModal = false;
+        $this->showStudentModal = false;
+        $this->showLecturerModal = false;
+        $this->showResourceModal = false;
+        $this->detailAssignmentId = null;
+        $this->gradingSubmissionId = null;
+    }
+
     public function openClassModal(): void
     {
+        $this->closeAllModals();
         $this->showClassModal = true;
-        $this->classTitle     = '';
-        $this->classLocation  = '';
-        $this->classType      = 'PHYSICAL';
-        $this->classStartsAt  = '';
-        $this->classEndsAt    = '';
+        $this->classTitle = '';
+        $this->classLocation = '';
+        $this->classType = 'PHYSICAL';
+        $this->classStartsAt = '';
+        $this->classEndsAt = '';
         $this->resetValidation();
     }
 
@@ -412,28 +467,28 @@ class ModuleManagement extends Component
     public function createClass(): void
     {
         $this->validate([
-            'classTitle'    => 'required|string|max:255',
+            'classTitle' => 'required|string|max:255',
             'classLocation' => 'required|string|max:255',
-            'classType'     => 'required|in:PHYSICAL,VIRTUAL',
+            'classType' => 'required|in:PHYSICAL,VIRTUAL',
             'classStartsAt' => 'required|date',
-            'classEndsAt'   => 'required|date|after:classStartsAt',
+            'classEndsAt' => 'required|date|after:classStartsAt',
         ]);
 
-        $folder = \App\Models\ResourceFolder::create([
+        $folder = ResourceFolder::create([
             'module_id' => $this->selectedModuleId,
             'parent_id' => null,
-            'name'      => $this->classTitle,
-            'order'     => 0,
+            'name' => $this->classTitle,
+            'order' => 0,
         ]);
 
         ClassSession::create([
-            'module_id'          => $this->selectedModuleId,
+            'module_id' => $this->selectedModuleId,
             'resource_folder_id' => $folder->id,
-            'title'              => $this->classTitle,
-            'location'           => $this->classLocation,
-            'type'               => $this->classType,
-            'starts_at'          => $this->classStartsAt,
-            'ends_at'            => $this->classEndsAt,
+            'title' => $this->classTitle,
+            'location' => $this->classLocation,
+            'type' => $this->classType,
+            'starts_at' => $this->classStartsAt,
+            'ends_at' => $this->classEndsAt,
         ]);
 
         $this->showClassModal = false;
@@ -442,9 +497,10 @@ class ModuleManagement extends Component
 
     public function openStudentModal(): void
     {
-        $this->showStudentModal    = true;
-        $this->modalSearch         = '';
-        $this->selectedStudentIds  = [];
+        $this->closeAllModals();
+        $this->showStudentModal = true;
+        $this->modalSearch = '';
+        $this->selectedStudentIds = [];
         unset($this->availableStudents, $this->selectedStudents);
     }
 
@@ -476,16 +532,17 @@ class ModuleManagement extends Component
             );
         }
 
-        $this->showStudentModal   = false;
+        $this->showStudentModal = false;
         $this->selectedStudentIds = [];
         unset($this->moduleStudents, $this->stats, $this->availableStudents);
     }
 
     public function openLecturerModal(): void
     {
-        $this->showLecturerModal    = true;
-        $this->modalSearch          = '';
-        $this->selectedLecturerIds  = [];
+        $this->closeAllModals();
+        $this->showLecturerModal = true;
+        $this->modalSearch = '';
+        $this->selectedLecturerIds = [];
         unset($this->availableLecturers, $this->selectedLecturersForModal);
     }
 
@@ -512,7 +569,7 @@ class ModuleManagement extends Component
 
         $newPivots = collect($this->selectedLecturerIds)
             ->mapWithKeys(fn ($id) => [
-                $id => ['role' => 'editor', 'created_at' => now()]
+                $id => ['role' => 'editor', 'created_at' => now()],
             ])->toArray();
 
         $module = Module::find($this->selectedModuleId);
@@ -521,11 +578,11 @@ class ModuleManagement extends Component
 
         $module->editors()->sync(
             collect($all)->mapWithKeys(fn ($id) => [
-                $id => ['role' => 'editor', 'created_at' => now()]
+                $id => ['role' => 'editor', 'created_at' => now()],
             ])->toArray()
         );
 
-        $this->showLecturerModal   = false;
+        $this->showLecturerModal = false;
         $this->selectedLecturerIds = [];
         unset($this->moduleLecturers, $this->selectedModule, $this->availableLecturers);
     }
@@ -542,7 +599,7 @@ class ModuleManagement extends Component
         if ($this->submissionSort === $column) {
             $this->submissionSortDir = $this->submissionSortDir === 'asc' ? 'desc' : 'asc';
         } else {
-            $this->submissionSort    = $column;
+            $this->submissionSort = $column;
             $this->submissionSortDir = 'asc';
         }
         unset($this->moduleSubmissions);
@@ -551,24 +608,24 @@ class ModuleManagement extends Component
     public function formatFileSize(int $bytes): string
     {
         return match (true) {
-            $bytes >= 1_073_741_824 => number_format($bytes / 1_073_741_824, 2) . ' GB',
-            $bytes >= 1_048_576     => number_format($bytes / 1_048_576, 2) . ' MB',
-            default                 => number_format($bytes / 1_024, 2) . ' KB',
+            $bytes >= 1_073_741_824 => number_format($bytes / 1_073_741_824, 2).' GB',
+            $bytes >= 1_048_576 => number_format($bytes / 1_048_576, 2).' MB',
+            default => number_format($bytes / 1_024, 2).' KB',
         };
     }
 
     public function formatMimeType(string $mime): string
     {
         return match ($mime) {
-            'application/pdf'                                                                          => 'PDF',
+            'application/pdf' => 'PDF',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword' => 'Word',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation'               => 'PowerPoint',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'                       => 'Excel',
-            'application/zip', 'application/x-zip-compressed'                                         => 'ZIP',
-            'text/plain'                                                                               => 'Text',
-            'video/mp4'                                                                               => 'MP4',
-            'audio/mpeg'                                                                              => 'MP3',
-            default                                                                                   => $mime,
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'PowerPoint',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'Excel',
+            'application/zip', 'application/x-zip-compressed' => 'ZIP',
+            'text/plain' => 'Text',
+            'video/mp4' => 'MP4',
+            'audio/mpeg' => 'MP3',
+            default => $mime,
         };
     }
 
@@ -579,18 +636,19 @@ class ModuleManagement extends Component
 
     public function openResourceModal(): void
     {
+        $this->closeAllModals();
         $this->showResourceModal = true;
-        $this->resourceStep      = 'choose';
-        $this->folderName        = '';
-        $this->fileName          = '';
-        $this->uploadedFile      = null;
+        $this->resourceStep = 'choose';
+        $this->folderName = '';
+        $this->fileName = '';
+        $this->uploadedFile = null;
         $this->resetValidation();
     }
 
     public function closeResourceModal(): void
     {
         $this->showResourceModal = false;
-        $this->resourceStep      = 'choose';
+        $this->resourceStep = 'choose';
     }
 
     public function chooseResourceType(string $type): void
@@ -604,21 +662,21 @@ class ModuleManagement extends Component
             'folderName' => 'required|string|max:255',
         ]);
 
-        \App\Models\ResourceFolder::create([
+        ResourceFolder::create([
             'module_id' => $this->selectedModuleId,
             'parent_id' => $this->browsedFolderId ?? $this->getLinkedFolderId(),
-            'name'      => $this->folderName,
-            'order'     => 0,
+            'name' => $this->folderName,
+            'order' => 0,
         ]);
 
         $this->showResourceModal = false;
-        $this->folderName        = '';
+        $this->folderName = '';
         unset($this->resourceContents, $this->moduleClasses);
     }
 
     public function uploadFile(): void
     {
-        $key = 'resource-upload:' . auth()->id();
+        $key = 'resource-upload:'.auth()->id();
 
         if (RateLimiter::tooManyAttempts($key, 10)) {
             $this->dispatch('toast',
@@ -626,13 +684,14 @@ class ModuleManagement extends Component
                 type: 'error',
                 duration: 4000
             );
+
             return;
         }
 
         RateLimiter::hit($key, 60);
 
         $this->validate([
-            'fileName'     => 'required|string|max:255',
+            'fileName' => 'required|string|max:255',
             'uploadedFile' => [
                 'required', 'file', 'max:102400',
                 'mimes:pdf,doc,docx,ppt,pptx,txt,mp4,mp3,zip',
@@ -640,24 +699,24 @@ class ModuleManagement extends Component
         ]);
 
         $originalName = $this->uploadedFile->getClientOriginalName();
-        $mimeType     = $this->uploadedFile->getMimeType();
-        $fileSize     = $this->uploadedFile->getSize();
-        $path         = $this->uploadedFile->store('module-resources', 'local');
+        $mimeType = $this->uploadedFile->getMimeType();
+        $fileSize = $this->uploadedFile->getSize();
+        $path = $this->uploadedFile->store('module-resources', 'local');
 
-        \App\Models\ModuleResource::create([
-            'module_id'   => $this->selectedModuleId,
-            'folder_id'   => $this->browsedFolderId ?? $this->getLinkedFolderId(),
+        ModuleResource::create([
+            'module_id' => $this->selectedModuleId,
+            'folder_id' => $this->browsedFolderId ?? $this->getLinkedFolderId(),
             'uploaded_by' => auth()->id(),
-            'title'       => $this->fileName,
-            'file_path'   => $path,
-            'file_name'   => $originalName,
-            'file_size'   => $fileSize,
-            'mime_type'   => $mimeType,
+            'title' => $this->fileName,
+            'file_path' => $path,
+            'file_name' => $originalName,
+            'file_size' => $fileSize,
+            'mime_type' => $mimeType,
         ]);
 
         $this->showResourceModal = false;
-        $this->fileName          = '';
-        $this->uploadedFile      = null;
+        $this->fileName = '';
+        $this->uploadedFile = null;
         unset($this->resourceContents, $this->moduleClasses);
 
         $this->dispatch('toast',
@@ -683,11 +742,11 @@ class ModuleManagement extends Component
         }
 
         $crumbs = [];
-        $folder = \App\Models\ResourceFolder::find($this->browsedFolderId);
+        $folder = ResourceFolder::find($this->browsedFolderId);
 
         while ($folder) {
             array_unshift($crumbs, ['id' => $folder->id, 'name' => $folder->name]);
-            $folder = $folder->parent_id ? \App\Models\ResourceFolder::find($folder->parent_id) : null;
+            $folder = $folder->parent_id ? ResourceFolder::find($folder->parent_id) : null;
         }
 
         return $crumbs;
@@ -740,7 +799,9 @@ class ModuleManagement extends Component
 
     public function showAssignmentDetail(int $id): void
     {
-        $this->detailAssignmentId = ($this->detailAssignmentId === $id) ? null : $id;
+        $newId = ($this->detailAssignmentId === $id) ? null : $id;
+        $this->closeAllModals();
+        $this->detailAssignmentId = $newId;
     }
 
     public function closeAssignmentDetail(): void
@@ -750,6 +811,7 @@ class ModuleManagement extends Component
 
     public function showGradePopup(int $submissionId): void
     {
+        $this->closeAllModals();
         $this->gradingSubmissionId = $submissionId;
     }
 
@@ -763,7 +825,7 @@ class ModuleManagement extends Component
     {
         logger('deleteAssignment received', ['id' => $id]);
 
-        \App\Models\Assignment::find($id)?->delete();
+        Assignment::find($id)?->delete();
 
         if ($this->selectedAssignmentId === $id) {
             $this->selectedAssignmentId = null;
@@ -785,12 +847,13 @@ class ModuleManagement extends Component
     }
 
     #[Computed]
-    public function detailAssignment(): ?\App\Models\Assignment
+    public function detailAssignment(): ?Assignment
     {
         if (! $this->detailAssignmentId) {
             return null;
         }
-        return \App\Models\Assignment::with('creator')->find($this->detailAssignmentId);
+
+        return Assignment::with('creator')->find($this->detailAssignmentId);
     }
 
     #[Computed]
@@ -799,7 +862,8 @@ class ModuleManagement extends Component
         if (! $this->gradingSubmissionId) {
             return null;
         }
-        return \App\Models\Submission::with(['grade.grader', 'student', 'assignment'])->find($this->gradingSubmissionId);
+
+        return Submission::with(['grade.grader', 'student', 'assignment'])->find($this->gradingSubmissionId);
     }
 
     #[Computed]
@@ -808,9 +872,10 @@ class ModuleManagement extends Component
         $folderId = $this->browsedFolderId;
 
         if ($folderId) {
-            $folder = \App\Models\ResourceFolder::with(['children', 'resources'])->find($folderId);
+            $folder = ResourceFolder::with(['children', 'resources'])->find($folderId);
+
             return [
-                'folders'   => $folder?->children ?? collect(),
+                'folders' => $folder?->children ?? collect(),
                 'resources' => $folder?->resources ?? collect(),
             ];
         }
@@ -821,9 +886,10 @@ class ModuleManagement extends Component
             return ['folders' => collect(), 'resources' => collect()];
         }
 
-        $folder = \App\Models\ResourceFolder::with(['children', 'resources'])->find($linkedFolderId);
+        $folder = ResourceFolder::with(['children', 'resources'])->find($linkedFolderId);
+
         return [
-            'folders'   => $folder?->children ?? collect(),
+            'folders' => $folder?->children ?? collect(),
             'resources' => $folder?->resources ?? collect(),
         ];
     }
@@ -835,18 +901,19 @@ class ModuleManagement extends Component
             return collect();
         }
 
-        return \App\Models\Assignment::where('module_id', $this->selectedModuleId)
+        return Assignment::where('module_id', $this->selectedModuleId)
             ->orderBy('due_at')
             ->paginate(12, pageName: 'assignmentsPage');
     }
 
     #[Computed]
-    public function selectedAssignment(): ?\App\Models\Assignment
+    public function selectedAssignment(): ?Assignment
     {
         if (! $this->selectedAssignmentId) {
             return null;
         }
-        return \App\Models\Assignment::find($this->selectedAssignmentId);
+
+        return Assignment::find($this->selectedAssignmentId);
     }
 
     #[Computed]
@@ -857,14 +924,14 @@ class ModuleManagement extends Component
         }
 
         $sortColumn = match ($this->submissionSort) {
-            'name'           => 'users.name',
-            'file_name'      => 'submissions.file_name',
-            'file_size'      => 'submissions.file_size',
-            'mime_type'      => 'submissions.mime_type',
-            'status'         => 'submissions.status',
-            'submitted_at'   => 'submissions.submitted_at',
-            'processed_at'   => 'submissions.processed_at',
-            default          => 'users.name',
+            'name' => 'users.name',
+            'file_name' => 'submissions.file_name',
+            'file_size' => 'submissions.file_size',
+            'mime_type' => 'submissions.mime_type',
+            'status' => 'submissions.status',
+            'submitted_at' => 'submissions.submitted_at',
+            'processed_at' => 'submissions.processed_at',
+            default => 'users.name',
         };
 
         return User::join('enrollments', 'users.id', '=', 'enrollments.user_id')
@@ -928,13 +995,12 @@ class ModuleManagement extends Component
             return collect();
         }
 
-        return User::whereHas('moduleAssignments', fn ($q) =>
-            $q->where('module_id', $this->selectedModuleId)
+        return User::whereHas('moduleAssignments', fn ($q) => $q->where('module_id', $this->selectedModuleId)
         )
-        ->paginate(10, pageName: 'lecturersPage');
+            ->paginate(10, pageName: 'lecturersPage');
     }
 
-    public function render(): \Illuminate\View\View
+    public function render(): View
     {
         return view('livewire.admin.module-management');
     }

@@ -8,7 +8,7 @@
     @endif
 
     {{-- ── SECTION 1: Stats strip ── --}}
-    <div class="grid grid-cols-7 gap-3 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         @foreach ([
             ['label' => 'Total users',   'key' => 'total',      'value' => $this->stats['total'],      'color' => ''],
             ['label' => 'Students',      'key' => 'students',   'value' => $this->stats['students'],   'color' => ''],
@@ -33,19 +33,19 @@
 
         {{-- Toolbar --}}
         <div class="flex items-center gap-3 p-4 flex-wrap">
-            <div class="relative">
+            <div class="relative w-full sm:w-64">
                 <input
                     wire:model.live.debounce.300ms="search"
                     type="text"
                     placeholder="Search name, email, ID…"
-                    class="pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                <svg class="absolute left-2.5 top-2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+                <svg class="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
             </div>
 
             <select
                 wire:model.live="roleFilter"
-                class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-full sm:w-auto"
                 aria-label="Filter by role"
             >
                 <option value="">All roles</option>
@@ -56,7 +56,7 @@
 
             <select
                 wire:model.live="statusFilter"
-                class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                class="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 w-full sm:w-auto"
                 aria-label="Filter by status"
             >
                 <option value="active">Active</option>
@@ -169,7 +169,7 @@
                     {{ $mode === 'create' ? 'Create new user' : 'Edit user' }}
                 </h3>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Full name</label>
                         <input wire:model="formName" type="text" class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -264,11 +264,11 @@
                 </div>
 
                 {{-- Detail body --}}
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {{-- Profile fields --}}
                     <div>
                         <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Profile</p>
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             @foreach ([
                                 'Full name'        => $user->name,
                                 'Role'             => ucfirst($user->roles->first()?->name ?? '—'),
